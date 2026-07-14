@@ -1219,8 +1219,8 @@ class Component extends DCLogic {
     this._t = setInterval(()=>{ this.setState(st => (st.running && st.clock>0) ? { clock: st.clock-1 } : null); }, 1000);
     if (!this.state.scores) this.setState({ scores:this.baseScores(), lastUpdated:Date.now() });
     if (this.USE_LIVE_FEED) this.loadLiveField();
-    // Demo cadence is 8s so updates are visible; in production align this to your 5-min poll.
-    this._poll = setInterval(()=>{ if (this.state.live) this.poll(); }, 8000);
+    // Poll only during active tournament hours (Thu–Sun of the selected major) and only while the tab is visible — conserves API quota.
+    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.eventLive(this.state.theme)) this.poll(); }, 300000);
     this._lastPick = this.state.pickIdx;
     this.pullState();
     this._clk = setInterval(()=>this.forceUpdate(), 15000); // refresh the status-bar clock
