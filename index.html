@@ -343,13 +343,17 @@ body{margin:0; background:#0a0a0a;}
           </div>
 
           <div style="padding:16px 22px 6px;">
-            <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.09em; color:var(--mut); margin-bottom:8px;">{{availCountStr}}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+              <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.09em; color:var(--mut);">{{availCountStr}}</div>
+              <span onClick="{{refreshField}}" style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--acc); cursor:pointer;">Refresh field</span>
+            </div>
             <input value="{{draftSearch}}" onInput="{{onDraftSearch}}" placeholder="Search players…" style="width:100%; padding:11px 14px; margin-bottom:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:500; font-size:14px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
             <sc-for list="{{avail}}" as="pl" hint-placeholder-count="8">
               <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line);">
                 <span style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--acc); width:30px;">{{pl.cc}}</span>
                 <div style="flex:1; font-family:var(--fb); font-weight:600; font-size:15px; color:var(--ink);">{{pl.n}}</div>
                 <span style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut);">{{pl.odds}}</span>
+                <span onClick="{{pl.remove}}" style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--fnt); cursor:pointer; padding:0 2px;" title="Remove (WD/injury)">✕</span>
                 <button onClick="{{pl.draft}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:12px; padding:8px 14px; border-radius:var(--rad); cursor:pointer;">Draft</button>
               </div>
             </sc-for>
@@ -1182,14 +1186,37 @@ class Component extends DCLogic {
   async pushState(){ if(!this.STATE_ENDPOINT) return; try{ const o=this.gatherData(); this._lastSyncT=o.t; await fetch(this.STATE_ENDPOINT,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key:this.SYNC_KEY, payload:o }) }); }catch(e){} }
   async pullState(){ if(!this.STATE_ENDPOINT) return; try{ const r=await fetch(this.STATE_ENDPOINT); const o=await r.json(); if(o&&o.data&&o.t&&o.t>(this._lastSyncT||0)){ this._lastSyncT=o.t; if(this.applyData(o)) this.refreshFromStorage(); } }catch(e){} }
   // Pull the entire tournament field from the feed for the draft board.
-  async loadLiveField() {
+  // Field list is cached per event for 24h — the entry list rarely changes intraday, so this avoids
+  // an API call every time the draft screen loads. "Refresh field now" and manual removal cover edge cases
+  // (e.g. a last-minute withdrawal) without needing to burn quota on every visit.
+  loadFieldCache(theme){ try{ const r=localStorage.getItem('mtc_field_'+theme); if(r) return JSON.parse(r); }catch(e){} return null; }
+  saveFieldCache(theme, list){ try{ localStorage.setItem('mtc_field_'+theme, JSON.stringify({ t:Date.now(), list })); }catch(e){} }
+  async loadLiveField(force) {
+    const theme = this.state.theme||'usopen';
+    const cached = this.loadFieldCache(theme);
+    const fresh = cached && (Date.now() - cached.t) < 86400000; // 24h
+    if (fresh && !force) { this.applyFieldList(cached.list); return; }
     try {
-      const r = await fetch(this.FIELD_ENDPOINT + '?event=' + (this.state.theme||'usopen')); const d = await r.json();
+      const r = await fetch(this.FIELD_ENDPOINT + '?event=' + theme); const d = await r.json();
       const list = (d.field || []).map(p => ({ n: p.name, cc: p.country || '', odds: p.odds || '' })).filter(p => p.n);
-      if (!list.length) return;
-      const taken = new Set((this.state.drafted || []).map(x => x.player));
-      this.setState({ field: list.filter(p => !taken.has(p.n)) });
-    } catch (e) {}
+      if (!list.length) { if (cached) this.applyFieldList(cached.list); return; }
+      this.saveFieldCache(theme, list);
+      this.applyFieldList(list);
+    } catch (e) { if (cached) this.applyFieldList(cached.list); }
+  }
+  applyFieldList(list){
+    const removed = new Set(this.removedFromBoard(this.state.theme));
+    const taken = new Set((this.state.drafted || []).map(x => x.player));
+    this.setState({ field: list.filter(p => !taken.has(p.n) && !removed.has(p.n)) });
+  }
+  // Manual override: pull a player off the board (e.g. injury/WD) without waiting on the cache to refresh.
+  removedFromBoard(theme){ try{ const r=localStorage.getItem('mtc_removed_'+theme); if(r) return JSON.parse(r); }catch(e){} return []; }
+  removePlayerFromBoard(name){
+    const theme=this.state.theme; const cur=this.removedFromBoard(theme);
+    if(cur.indexOf(name)===-1) cur.push(name);
+    try{ localStorage.setItem('mtc_removed_'+theme, JSON.stringify(cur)); }catch(e){}
+    this.setState(st=>({ field:(st.field||[]).filter(p=>p.n!==name) }));
+    this.flash(name+' removed from the board');
   }
   baseScores() { if(!this.DEMO_MODE) return {}; const m={}; Object.values(this.ROSTERS).forEach(arr=>arr.forEach(([n,s,c])=>{ m[n]={ s, c:!!c }; })); return m; }
   async fetchLeaderboard() {
@@ -1741,7 +1768,7 @@ class Component extends DCLogic {
     const onClock = { initials:ocPart.ini, name:ocPart.name, meta:'Round '+(curRound+1)+' of 5 · '+ocCount+'/5 drafted' };
     const durations = [120,300,600,1200].map(d=>({ label:this.fmt(d), active:d===S.clockDur, idle:d!==S.clockDur, onClick:()=>this.setState({ clockDur:d, clock:d }) }));
     const q = (S.draftSearch||'').trim().toLowerCase();
-    const availAll = (S.field||[]).map(f=>({ ...f, draft:()=>this.draftPlayer(f.n) }));
+    const availAll = (S.field||[]).map(f=>({ ...f, draft:()=>this.draftPlayer(f.n), remove:()=>this.removePlayerFromBoard(f.n) }));
     const avail = q ? availAll.filter(a=>(a.n||'').toLowerCase().includes(q)) : availAll;
     const availCountStr = 'AVAILABLE \u00b7 ' + availAll.length;
     const recent = drafted.slice(-3).reverse().map(d=>({ n:d.player, by:this.PARTS[d.pid].name.split(' ')[0] }));
@@ -1840,7 +1867,7 @@ class Component extends DCLogic {
       winnerNote:(pv?pv.winnerNote:winnerNoteDyn), potsEventName:(pv?pv.eventName:liveEventName2),
       kittyNote:"$"+this.scoring.mcDollar+" per missed cut. Lowest total at season\u2019s end takes the Kitty.",
       pickLabel:'Pick '+(pickIdx+1)+' / 40', roundLabel:'ROUND '+(curRound+1),
-      order, onClock, durations, avail, recent, availCountStr,
+      order, onClock, durations, avail, recent, availCountStr, refreshField:()=>this.loadLiveField(true),
       eventViewPool:S.eventView!=='field', eventViewField:S.eventView==='field',
       showPool:()=>this.setState({eventView:'pool'}), showField:()=>this.setState({eventView:'field'}),
       poolTabActive:S.eventView!=='field', fieldTabActive:S.eventView==='field',
