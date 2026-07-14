@@ -789,8 +789,8 @@ body{margin:0; background:#0a0a0a;}
 
     <!-- ================= SIGN-IN OVERLAY ================= -->
     <sc-if value="{{showSignIn}}" hint-placeholder-val="{{false}}">
-      <div onClick="{{closeSignIn}}" style="position:absolute; inset:0; background:rgba(8,12,20,.7); display:flex; flex-direction:column; justify-content:flex-end; z-index:85;">
-        <div onClick="{{stopProp}}" style="background:var(--bg); border-top-left-radius:20px; border-top-right-radius:20px; padding:20px 22px 26px;">
+      <div onClick="{{closeSignIn}}" style="position:absolute; inset:0; background:rgba(8,12,20,.7); display:flex; flex-direction:column; justify-content:flex-start; z-index:85;">
+        <div onClick="{{stopProp}}" style="background:var(--bg); border-bottom-left-radius:20px; border-bottom-right-radius:20px; padding:20px 22px 26px;">
           <sc-if value="{{signInStep1}}" hint-placeholder-val="{{true}}">
             <div style="font-family:var(--fd); font-size:24px; color:var(--ink);">Who's picking?</div>
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
@@ -844,8 +844,8 @@ body{margin:0; background:#0a0a0a;}
 
     <!-- ================= SETTINGS OVERLAY ================= -->
     <sc-if value="{{showSettings}}" hint-placeholder-val="{{false}}">
-      <div onClick="{{closeSettings}}" style="position:absolute; inset:0; background:rgba(8,12,20,.55); display:flex; flex-direction:column; justify-content:flex-end;">
-        <div onClick="{{stop}}" style="background:var(--bg); border-top-left-radius:20px; border-top-right-radius:20px; padding:8px 22px 26px; max-height:92%; overflow-y:auto; animation:mtUp .3s ease both;">
+      <div onClick="{{closeSettings}}" style="position:absolute; inset:0; background:rgba(8,12,20,.55); display:flex; flex-direction:column; justify-content:flex-start;">
+        <div onClick="{{stop}}" style="background:var(--bg); border-bottom-left-radius:20px; border-bottom-right-radius:20px; padding:8px 22px 26px; max-height:92%; overflow-y:auto; animation:mtUp .3s ease both;">
           <div style="display:flex; justify-content:center; padding:8px 0 14px;"><span style="width:38px; height:4px; border-radius:999px; background:var(--line);"></span></div>
           <sc-if value="{{settingsLocked}}" hint-placeholder-val="{{true}}">
             <div style="display:flex; align-items:center; gap:10px;">
