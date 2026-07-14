@@ -801,7 +801,7 @@ body{margin:0; background:#0a0a0a;}
           </sc-if>
           <sc-if value="{{signInStep2}}" hint-placeholder-val="{{false}}">
             <div style="font-family:var(--fd); font-size:24px; color:var(--ink);">Enter {{signInName}}'s passcode</div>
-            <input value="{{signInPinVal}}" onInput="{{onSignInPin}}" type="password" inputmode="numeric" placeholder="PIN" style="width:100%; margin-top:14px; padding:13px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:18px; text-align:center; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+            <input id="signInPinInput" value="{{signInPinVal}}" onInput="{{onSignInPin}}" type="password" inputmode="numeric" placeholder="PIN" style="width:100%; margin-top:14px; padding:13px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:18px; text-align:center; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
             <button onClick="{{doSignIn}}" style="width:100%; margin-top:12px; padding:13px; border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:14px; border-radius:var(--rad); cursor:pointer;">Sign in</button>
           </sc-if>
         </div>
@@ -1688,11 +1688,12 @@ class Component extends DCLogic {
   clearActiveUser(){ try{ localStorage.removeItem('mtc_activeuser'); }catch(e){} this.setState({showSignIn:false, signInPid:null}); this.forceUpdate(); }
   openSignIn(){ this.setState({ showSignIn:true, signInPid:null }); }
   chooseSignInName(pid){ this.setState({ signInPid:pid }); }
-  submitSignIn(pin){
+  submitSignIn(pinRaw){
+    const pin=String(pinRaw||'').trim();
     const pid=this.state.signInPid; if(pid==null) return;
-    const pins=this.loadPlayerPins(); const set=pins[pid];
-    if(pin===this.MASTER_PASSCODE || (set && pin===set)){ this.setActiveUser(pid); this.setState({showSignIn:false, signInPid:null}); this.flash('Signed in as '+this.PARTS[pid].name.split(' ')[0]); }
-    else if(!set && pin===this.userPass()){ this.setActiveUser(pid); this.setState({showSignIn:false, signInPid:null}); this.flash('Signed in as '+this.PARTS[pid].name.split(' ')[0]); }
+    const pins=this.loadPlayerPins(); const set=pins[pid]!=null?String(pins[pid]).trim():'';
+    if(pin===String(this.MASTER_PASSCODE).trim() || (set && pin===set)){ this.setActiveUser(pid); this.setState({showSignIn:false, signInPid:null}); this.flash('Signed in as '+this.PARTS[pid].name.split(' ')[0]); }
+    else if(!set && pin===String(this.userPass()).trim()){ this.setActiveUser(pid); this.setState({showSignIn:false, signInPid:null}); this.flash('Signed in as '+this.PARTS[pid].name.split(' ')[0]); }
     else { this.flash('Incorrect passcode'); }
   }
   requireOnClockAuth(onClockId, onClockName, cb){
@@ -2053,7 +2054,7 @@ class Component extends DCLogic {
       signInChoices:this.PARTS.map(p=>({ name:p.name, pick:()=>this.chooseSignInName(p.id) })),
       signInName:(S.signInPid!=null?this.PARTS[S.signInPid].name:''), closeSignIn:()=>this.setState({showSignIn:false, signInPid:null}),
       signInPinVal:(S.signInPinVal!=null?S.signInPinVal:''), onSignInPin:(e)=>this.setState({signInPinVal:e.target.value}),
-      doSignIn:()=>{ this.submitSignIn(this.state.signInPinVal||''); this.setState({signInPinVal:''}); },
+      doSignIn:()=>{ let v=this.state.signInPinVal||''; try{ const el=document.getElementById('signInPinInput'); if(el && el.value) v=el.value; }catch(e){} this.submitSignIn(v); this.setState({signInPinVal:''}); },
       passNewVal:(S.passNew!=null?S.passNew:''), passConfirmVal:(S.passConfirm!=null?S.passConfirm:''), onPassNew:(e)=>this.setState({passNew:e.target.value, passMsg:''}), onPassConfirm:(e)=>this.setState({passConfirm:e.target.value, passMsg:''}), changePass:()=>this.changePass(), passMsg:S.passMsg||'', passOk:!!S.passOk, hasPassMsg:!!S.passMsg, enteredMaster:!!S.enteredMaster,
       poolCarryVal:(S.poolCarry!=null?S.poolCarry:''), onPoolCarry:(e)=>this.updatePoolCarry(e.target.value),
       poolWinnerCarryVal:(S.poolWinnerCarry!=null?S.poolWinnerCarry:''), onPoolWinnerCarry:(e)=>this.setState({poolWinnerCarry:e.target.value}),
