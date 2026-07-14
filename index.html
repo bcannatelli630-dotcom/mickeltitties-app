@@ -354,9 +354,9 @@ body{margin:0; background:#0a0a0a;}
 
           <div style="padding:18px 22px 4px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.09em; color:var(--mut);">{{roundLabel}} ORDER</span><div style="display:flex; gap:6px;"><sc-if value="{{canShuffle}}" hint-placeholder-val="{{true}}"><button onClick="{{orderAction}}" style="border:1px solid var(--acc); background:transparent; color:var(--acc); font-family:var(--fb); font-weight:700; font-size:11px; padding:5px 12px; border-radius:999px; cursor:pointer;">{{orderBtnLabel}}</button><button onClick="{{openOrderPicker}}" style="border:1px solid var(--line); background:transparent; color:var(--mut); font-family:var(--fb); font-weight:700; font-size:11px; padding:5px 12px; border-radius:999px; cursor:pointer;">Set order</button></sc-if><sc-if value="{{cannotShuffle}}" hint-placeholder-val="{{false}}"><span style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--fnt);">↕ snakes back</span></sc-if></div></div>
-            <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">
+            <div id="roundOrderStrip" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">
               <sc-for list="{{order}}" as="o" hint-placeholder-count="8">
-                <sc-if value="{{o.current}}" hint-placeholder-val="{{true}}"><div style="flex:none; padding:8px 14px; background:var(--acc); color:var(--aci); border-radius:var(--rad); font-family:var(--fb); font-weight:700; font-size:13px;">{{o.name}}</div></sc-if>
+                <sc-if value="{{o.current}}" hint-placeholder-val="{{true}}"><div data-cur="1" style="flex:none; padding:8px 14px; background:var(--acc); color:var(--aci); border-radius:var(--rad); font-family:var(--fb); font-weight:700; font-size:13px;">{{o.name}}</div></sc-if>
                 <sc-if value="{{o.other}}" hint-placeholder-val="{{false}}"><div style="flex:none; padding:8px 14px; background:var(--card); border:1px solid var(--line); color:var(--mut); border-radius:var(--rad); font-family:var(--fb); font-weight:600; font-size:13px;">{{o.name}}</div></sc-if>
               </sc-for>
             </div>
@@ -369,12 +369,12 @@ body{margin:0; background:#0a0a0a;}
             </div>
             <input value="{{draftSearch}}" onInput="{{onDraftSearch}}" placeholder="Search players…" style="width:100%; padding:11px 14px; margin-bottom:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:500; font-size:14px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
             <sc-for list="{{avail}}" as="pl" hint-placeholder-count="8">
-              <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line);">
-                <span style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--acc); width:30px;">{{pl.cc}}</span>
-                <div style="flex:1; font-family:var(--fb); font-weight:600; font-size:15px; color:var(--ink);">{{pl.n}}</div>
-                <span style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut);">{{pl.odds}}</span>
-                <span onClick="{{pl.remove}}" style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--fnt); cursor:pointer; padding:0 2px;" title="Remove (WD/injury)">✕</span>
-                <button onClick="{{pl.draft}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:12px; padding:8px 14px; border-radius:var(--rad); cursor:pointer;">Draft</button>
+              <div style="display:flex; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid var(--line);">
+                <span style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.05em; color:var(--acc); width:26px; flex:none;">{{pl.cc}}</span>
+                <div style="flex:1; min-width:0; font-family:var(--fb); font-weight:600; font-size:15px; color:var(--ink); text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{pl.n}}</div>
+                <span style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); flex:none;">{{pl.odds}}</span>
+                <span onClick="{{pl.remove}}" style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--fnt); cursor:pointer; padding:0 2px; flex:none;" title="Remove (WD/injury)">✕</span>
+                <button onClick="{{pl.draft}}" style="flex:none; border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:12px; padding:8px 14px; border-radius:var(--rad); cursor:pointer;">Draft</button>
               </div>
             </sc-for>
           </div>
@@ -1355,6 +1355,7 @@ class Component extends DCLogic {
     // Poll only during active tournament hours (Thu–Sun of the selected major) and only while the tab is visible — conserves API quota.
     this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.eventLive(this.state.theme)) this.poll(); }, 300000);
     this._lastPick = this.state.pickIdx;
+    setTimeout(()=>this.centerRoundOrder(), 200);
     this.pullState();
     this._clk = setInterval(()=>this.forceUpdate(), 15000); // refresh the status-bar clock
     this._sync = setInterval(()=>this.pullState(), 25000);
@@ -1366,6 +1367,7 @@ class Component extends DCLogic {
     if (this._lastPick === undefined) { this._lastPick = cur; return; }
     if (cur !== this._lastPick) {
       this._lastPick = cur;
+      setTimeout(()=>this.centerRoundOrder(), 50);
       if (!this.state.draftLocked && this.state.screen==='draft' && !this.state.draftPreview) {
         const nm = this.onClockName(cur).split(' ')[0];
         if (this.state.soundOn) { this.chime(); if (navigator.vibrate) { try { navigator.vibrate([120,60,120]); } catch(e){} } }
@@ -1375,6 +1377,7 @@ class Component extends DCLogic {
     }
   }
   onClockName(pickIdx) { const idx=Math.min(pickIdx,39); const r=Math.floor(idx/8); const slot=r%2===0?[0,1,2,3,4,5,6,7]:[7,6,5,4,3,2,1,0]; return this.PARTS[this.ord()[slot[idx%8]]].name; }
+  centerRoundOrder(){ try{ const el=document.getElementById('roundOrderStrip'); if(!el) return; const cur=el.querySelector('[data-cur]'); if(!cur) return; const target=cur.offsetLeft + cur.offsetWidth/2 - el.clientWidth/2; el.scrollTo({ left: Math.max(0,target), behavior:'smooth' }); }catch(e){} }
   chime() {
     try {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
