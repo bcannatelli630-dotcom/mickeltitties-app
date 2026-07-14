@@ -1286,7 +1286,21 @@ class Component extends DCLogic {
   STATE_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/state';            // set to .../api/state once the shared database is live
   SYNC_KEY = 'mtc-2026';          // light write-guard shared with the backend
   USE_LIVE_FEED = true;
-  async pushState(){ if(!this.STATE_ENDPOINT) return; try{ const o=this.gatherData(); this._lastSyncT=o.t; await fetch(this.STATE_ENDPOINT,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key:this.SYNC_KEY, payload:o }) }); }catch(e){} }
+  // Merge-safe push: player PINs use last-write-wins-per-field merging against the server copy first,
+  // so a device that hasn't yet pulled someone else's newly-saved PIN can never silently erase it.
+  async mergePinsBeforePush(){
+    if(!this.STATE_ENDPOINT) return;
+    try{
+      const r=await fetch(this.STATE_ENDPOINT); const o=await r.json();
+      const serverRaw=o&&o.data&&o.data.mtc_playerpins;
+      const server=serverRaw?JSON.parse(serverRaw):{};
+      const local=this.loadPlayerPins();
+      const merged={...server};
+      Object.keys(local).forEach(k=>{ if(local[k]) merged[k]=local[k]; });
+      try{ localStorage.setItem('mtc_playerpins', JSON.stringify(merged)); }catch(e){}
+    }catch(e){}
+  }
+  async pushState(){ if(!this.STATE_ENDPOINT) return; try{ await this.mergePinsBeforePush(); const o=this.gatherData(); this._lastSyncT=o.t; await fetch(this.STATE_ENDPOINT,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ key:this.SYNC_KEY, payload:o }) }); }catch(e){} }
   async pullState(){ if(!this.STATE_ENDPOINT) return; try{ const r=await fetch(this.STATE_ENDPOINT); const o=await r.json(); if(o&&o.data&&o.t&&o.t>(this._lastSyncT||0)){ this._lastSyncT=o.t; if(this.applyData(o)) this.refreshFromStorage(); } }catch(e){} }
   // Pull the entire tournament field from the feed for the draft board.
   // Field list is cached per event for 24h — the entry list rarely changes intraday, so this avoids
