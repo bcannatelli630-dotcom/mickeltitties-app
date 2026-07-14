@@ -1674,7 +1674,7 @@ class Component extends DCLogic {
   resetNames(){ this.setState({ nameDraft:['Player 1','Player 2','Player 3','Player 4','Player 5','Player 6','Player 7','Player 8'] }); }
 
   // ----- backup / restore -----
-  DATA_KEYS = ['mtc_names','mtc_season','mtc_history','mtc_scoring','mtc_draft','mtc_scorepool','mtc_pass','mtc_payouts'];
+  DATA_KEYS = ['mtc_names','mtc_season','mtc_history','mtc_scoring','mtc_draft','mtc_scorepool','mtc_pass','mtc_payouts','mtc_playerpins'];
   gatherData(){ const o={ app:'mickeltitties', v:1, t:Date.now(), data:{} }; this.DATA_KEYS.forEach(k=>{ try{ o.data[k]=localStorage.getItem(k); }catch(e){ o.data[k]=null; } }); return o; }
   applyData(o){ const d=o&&o.data; if(!d) return false; this.DATA_KEYS.forEach(k=>{ if(d[k]!=null){ try{ localStorage.setItem(k, d[k]); }catch(e){} } }); return true; }
   refreshFromStorage(){ this.loadNames(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); const th=this.state.theme; const cd=this.draftFor(th); this.setState({ theme:th, drafted:cd.drafted, pickIdx:cd.pickIdx, draftOrder:cd.order }); if(this.USE_LIVE_FEED) setTimeout(()=>this.loadLiveField(),50); this.forceUpdate(); }
@@ -1686,7 +1686,7 @@ class Component extends DCLogic {
   loadActiveUser(){ try{ const v=localStorage.getItem('mtc_activeuser'); return v!=null?parseInt(v,10):null; }catch(e){ return null; } }
   setActiveUser(pid){ try{ localStorage.setItem('mtc_activeuser', String(pid)); }catch(e){} this.forceUpdate(); }
   clearActiveUser(){ try{ localStorage.removeItem('mtc_activeuser'); }catch(e){} this.setState({showSignIn:false, signInPid:null}); this.forceUpdate(); }
-  openSignIn(){ this.setState({ showSignIn:true, signInPid:null }); }
+  openSignIn(){ this.pullState(); this.setState({ showSignIn:true, signInPid:null }); }
   chooseSignInName(pid){ this.setState({ signInPid:pid }); }
   submitSignIn(pinRaw){
     const pin=String(pinRaw||'').trim();
