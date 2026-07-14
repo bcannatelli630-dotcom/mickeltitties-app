@@ -304,6 +304,8 @@ body{margin:0; background:#0a0a0a;}
               <div style="text-align:right;"><div style="font-family:var(--fb); font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--mut);">{{pickLabel}}</div><button onClick="{{toggleLock}}" style="margin-top:4px; border:none; background:none; font-family:var(--fb); font-weight:600; font-size:11px; color:var(--dn); cursor:pointer; padding:0;">Lock draft ↗</button></div>
             </div>
             <div style="font-family:var(--fb); font-weight:600; font-size:11px; letter-spacing:.04em; color:var(--mut); margin-top:4px;">{{liveEventName2}} · SNAKE DRAFT</div>
+            <sc-if value="{{isSignedIn}}" hint-placeholder-val="{{false}}"><div style="margin-top:8px; font-family:var(--fb); font-weight:600; font-size:11px; color:var(--up);">Signed in as {{activeUserName}} · <span onClick="{{clearActiveUser}}" style="color:var(--mut); cursor:pointer; text-decoration:underline;">Switch</span></div></sc-if>
+            <sc-if value="{{notSignedIn}}" hint-placeholder-val="{{true}}"><div onClick="{{openSignIn}}" style="margin-top:8px; font-family:var(--fb); font-weight:700; font-size:11px; color:var(--acc); cursor:pointer;">Sign in to draft →</div></sc-if>
           </div>
 
           <div style="display:flex; gap:5px; margin:14px 22px 0; background:var(--card); border:1px solid var(--line); padding:4px; border-radius:var(--rad);">
@@ -785,6 +787,27 @@ body{margin:0; background:#0a0a0a;}
       </div>
     </sc-if>
 
+    <!-- ================= SIGN-IN OVERLAY ================= -->
+    <sc-if value="{{showSignIn}}" hint-placeholder-val="{{false}}">
+      <div onClick="{{closeSignIn}}" style="position:absolute; inset:0; background:rgba(8,12,20,.7); display:flex; flex-direction:column; justify-content:flex-end; z-index:85;">
+        <div onClick="{{stopProp}}" style="background:var(--bg); border-top-left-radius:20px; border-top-right-radius:20px; padding:20px 22px 26px;">
+          <sc-if value="{{signInStep1}}" hint-placeholder-val="{{true}}">
+            <div style="font-family:var(--fd); font-size:24px; color:var(--ink);">Who's picking?</div>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
+              <sc-for list="{{signInChoices}}" as="p" hint-placeholder-count="8">
+                <div onClick="{{p.pick}}" style="padding:13px 16px; border:1px solid var(--line); border-radius:var(--rad); font-family:var(--fb); font-weight:600; font-size:15px; color:var(--ink); cursor:pointer;">{{p.name}}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{signInStep2}}" hint-placeholder-val="{{false}}">
+            <div style="font-family:var(--fd); font-size:24px; color:var(--ink);">Enter {{signInName}}'s passcode</div>
+            <input value="{{signInPinVal}}" onInput="{{onSignInPin}}" type="password" inputmode="numeric" placeholder="PIN" style="width:100%; margin-top:14px; padding:13px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:18px; text-align:center; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+            <button onClick="{{doSignIn}}" style="width:100%; margin-top:12px; padding:13px; border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:14px; border-radius:var(--rad); cursor:pointer;">Sign in</button>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
     <!-- ================= SETTLEMENT CARD (screenshot-friendly) ================= -->
     <sc-if value="{{showSettleCard}}" hint-placeholder-val="{{false}}">
       <div onClick="{{closeSettleCard}}" style="position:absolute; inset:0; background:rgba(8,12,20,.7); display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; z-index:80;">
@@ -971,6 +994,19 @@ body{margin:0; background:#0a0a0a;}
               </sc-for>
             </div>
             <div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--fnt); margin-top:12px; line-height:1.5;">Enter guesses to par — e.g. −10 for 10-under, E for even, 2 for +2. The live pot &amp; results show on the Pots tab.</div>
+          </sc-if>
+
+          <sc-if value="{{isLoginsTab}}" hint-placeholder-val="{{false}}">
+            <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-top:14px; line-height:1.55;">Set each participant's personal passcode. Once set, they sign in on the Draft tab and can only draft for themselves — anyone can still sign in as anyone using the admin passcode.</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
+              <sc-for list="{{loginFields}}" as="f" hint-placeholder-count="8">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span style="flex:1; min-width:0; font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{f.name}}</span>
+                  <input value="{{f.val}}" onInput="{{f.onInput}}" placeholder="PIN" style="width:80px; flex:none; padding:9px 0; text-align:center; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:14px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                  <button onClick="{{f.save}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:11px; padding:9px 12px; border-radius:var(--rad); cursor:pointer;">Save</button>
+                </div>
+              </sc-for>
+            </div>
           </sc-if>
 
           <sc-if value="{{isSecurityTab}}" hint-placeholder-val="{{false}}">
@@ -1642,6 +1678,29 @@ class Component extends DCLogic {
   exportData(){ try{ const o=this.gatherData(); const blob=new Blob([JSON.stringify(o,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mickeltitties-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1500); this.flash('Backup downloaded'); }catch(e){ this.flash('Backup failed'); } }
   importData(e){ const file=e&&e.target&&e.target.files&&e.target.files[0]; if(!file) return; const rdr=new FileReader(); rdr.onload=()=>{ try{ const o=JSON.parse(rdr.result); if(this.applyData(o)){ this.refreshFromStorage(); this.flash('Backup restored'); } else { this.flash('That file didn’t look right'); } }catch(err){ this.flash('Could not read that file'); } }; rdr.readAsText(file); e.target.value=''; }
 
+  loadPlayerPins(){ try{ const r=localStorage.getItem('mtc_playerpins'); if(r) return JSON.parse(r)||{}; }catch(e){} return {}; }
+  savePlayerPin(pid,pin){ const m=this.loadPlayerPins(); m[pid]=pin; try{ localStorage.setItem('mtc_playerpins', JSON.stringify(m)); }catch(e){} this.pushState(); }
+  loadActiveUser(){ try{ const v=localStorage.getItem('mtc_activeuser'); return v!=null?parseInt(v,10):null; }catch(e){ return null; } }
+  setActiveUser(pid){ try{ localStorage.setItem('mtc_activeuser', String(pid)); }catch(e){} this.forceUpdate(); }
+  clearActiveUser(){ try{ localStorage.removeItem('mtc_activeuser'); }catch(e){} this.setState({showSignIn:false, signInPid:null}); this.forceUpdate(); }
+  openSignIn(){ this.setState({ showSignIn:true, signInPid:null }); }
+  chooseSignInName(pid){ this.setState({ signInPid:pid }); }
+  submitSignIn(pin){
+    const pid=this.state.signInPid; if(pid==null) return;
+    const pins=this.loadPlayerPins(); const set=pins[pid];
+    if(pin===this.MASTER_PASSCODE || (set && pin===set)){ this.setActiveUser(pid); this.setState({showSignIn:false, signInPid:null}); this.flash('Signed in as '+this.PARTS[pid].name.split(' ')[0]); }
+    else if(!set && pin===this.userPass()){ this.setActiveUser(pid); this.setState({showSignIn:false, signInPid:null}); this.flash('Signed in as '+this.PARTS[pid].name.split(' ')[0]); }
+    else { this.flash('Incorrect passcode'); }
+  }
+  requireOnClockAuth(onClockId, onClockName, cb){
+    const active=this.loadActiveUser();
+    if(active===onClockId){ cb(); return; }
+    if(active==null){ this.openSignIn(); this.flash('Sign in first'); return; }
+    const pin=window.prompt('Not your turn \u2014 enter admin passcode to draft for '+onClockName+':');
+    if(pin===null) return;
+    if(pin===this.MASTER_PASSCODE || pin===this.userPass()){ cb(); return; }
+    this.flash('It\u2019s '+onClockName+'\u2019s turn, not yours');
+  }
   requireDraftAuth(cb){ if(this._draftAuthed){ cb(); return; } const pin=window.prompt('Enter passcode to make draft changes:'); if(pin===null) return; if(pin!==this.userPass() && pin!==this.MASTER_PASSCODE){ this.flash('Incorrect passcode'); return; } this._draftAuthed=true; cb(); }
   oddsVal(s){ if(!s) return null; const t=String(s).trim(); const m=t.match(/^[+\-]?\d+/); if(!m) return null; const n=parseInt(t.replace('+',''),10); return isNaN(n)?null:n; }
   loadClockFeature(){ try{ return localStorage.getItem('mtc_clockfeature')==='1'; }catch(e){ return false; } }
@@ -1848,7 +1907,7 @@ class Component extends DCLogic {
     const clockFeatureOn = !!this.loadClockFeature();
     const clockExpired = clockFeatureOn && S.clockArmed && S.clock<=0;
     const q = (S.draftSearch||'').trim().toLowerCase();
-    const availAll = (S.field||[]).map(f=>({ ...f, draft:()=>this.requireDraftAuth(()=>this.draftPlayer(f.n)), remove:()=>this.removePlayerFromBoard(f.n) }))
+    const availAll = (S.field||[]).map(f=>({ ...f, draft:()=>this.requireOnClockAuth(ocPart.id, ocPart.name, ()=>this.draftPlayer(f.n)), remove:()=>this.removePlayerFromBoard(f.n) }))
       .sort((a,b)=>{ const oa=this.oddsVal(a.odds), ob=this.oddsVal(b.odds); if(oa==null&&ob==null) return a.n.localeCompare(b.n); if(oa==null) return 1; if(ob==null) return -1; return oa-ob; });
     const avail = q ? availAll.filter(a=>(a.n||'').toLowerCase().includes(q)) : availAll;
     const availCountStr = 'AVAILABLE \u00b7 ' + availAll.length;
@@ -1962,7 +2021,7 @@ class Component extends DCLogic {
       rosterGroups:(S.draftOrder||[0,1,2,3,4,5,6,7]).map(pid=>this.PARTS[pid]).map(p=>({ name:p.name, ini:p.ini, count:drafted.filter(d=>d.pid===p.id).length+'/5',
         players:drafted.map((d,i)=>({d,i})).filter(o=>o.d.pid===p.id).map(o=>({ name:o.d.player, edit:()=>this.openPickEdit(o.i) })) })),
       anyRoster:drafted.length>0, noRoster:drafted.length===0,
-      clearDraft:()=>this.clearDraft(), clearDraftLabel:this._confirmClear?'Tap again to confirm — this erases all picks':'Clear draft (start over)',
+      clearDraft:()=>this.requireDraftAuth(()=>this.clearDraft()), clearDraftLabel:this._confirmClear?'Tap again to confirm — this erases all picks':'Clear draft (start over)',
       showPickEdit:!!pickEdit, pickEdit, closePickEdit:()=>this.closePickEdit(),
       draftSearch:S.draftSearch, onDraftSearch:(e)=>this.setState({draftSearch:e.target.value}),
       clockStr:this.fmt(S.clock), clockPct:Math.round(S.clock/S.clockDur*100),
@@ -1982,8 +2041,16 @@ class Component extends DCLogic {
       saveSettings:()=>this.saveSettings(), resetNames:()=>this.resetNames(),
       settingsUnlocked:S.settingsUnlocked, settingsLocked:!S.settingsUnlocked, pinValue:S.pin, pinErr:S.pinErr,
       onPin:(e)=>this.setState({pin:e.target.value, pinErr:false}), onPinKey:(e)=>{ if(e.key==='Enter') this.submitPin(); }, submitPin:()=>this.submitPin(),
-      settingsTabs:[{k:'names',label:'Names'},{k:'season',label:'Season'},{k:'history',label:'History'},{k:'rosters',label:'Rosters'},{k:'scoring',label:'Scoring'},{k:'pool',label:'Pool'},{k:'security',label:'Lock'}].map(tb=>({ label:tb.label, active:(S.settingsTab||'names')===tb.k, idle:(S.settingsTab||'names')!==tb.k, onClick:()=>this.setSettingsTab(tb.k) })),
-      isNamesTab:(S.settingsTab||'names')==='names', isSeasonTab:S.settingsTab==='season', isHistoryTab:S.settingsTab==='history', isRostersTab:S.settingsTab==='rosters', isScoringTab:S.settingsTab==='scoring', isPoolTab:S.settingsTab==='pool', isSecurityTab:S.settingsTab==='security',
+      settingsTabs:[{k:'names',label:'Names'},{k:'season',label:'Season'},{k:'history',label:'History'},{k:'rosters',label:'Rosters'},{k:'scoring',label:'Scoring'},{k:'pool',label:'Pool'},{k:'logins',label:'Logins'},{k:'security',label:'Lock'}].map(tb=>({ label:tb.label, active:(S.settingsTab||'names')===tb.k, idle:(S.settingsTab||'names')!==tb.k, onClick:()=>this.setSettingsTab(tb.k) })),
+      isNamesTab:(S.settingsTab||'names')==='names', isSeasonTab:S.settingsTab==='season', isHistoryTab:S.settingsTab==='history', isRostersTab:S.settingsTab==='rosters', isScoringTab:S.settingsTab==='scoring', isPoolTab:S.settingsTab==='pool', isSecurityTab:S.settingsTab==='security', isLoginsTab:S.settingsTab==='logins',
+      loginFields:this.PARTS.map(p=>({ name:p.name, val:((S.loginDraft||{})[p.id]!=null?(S.loginDraft||{})[p.id]:(this.loadPlayerPins()[p.id]||'')), onInput:(e)=>this.setState(st=>({ loginDraft:{...(st.loginDraft||{}), [p.id]:e.target.value} })), save:()=>{ this.savePlayerPin(p.id, ((this.state.loginDraft||{})[p.id]||'').trim()); this.flash('Saved'); } })),
+      activeUserName:(this.loadActiveUser()!=null?this.PARTS[this.loadActiveUser()].name.split(' ')[0]:null), isSignedIn:this.loadActiveUser()!=null, notSignedIn:this.loadActiveUser()==null,
+      openSignIn:()=>this.openSignIn(), clearActiveUser:()=>this.clearActiveUser(),
+      showSignIn:!!S.showSignIn, signInStep2:S.signInPid!=null, signInStep1:S.signInPid==null,
+      signInChoices:this.PARTS.map(p=>({ name:p.name, pick:()=>this.chooseSignInName(p.id) })),
+      signInName:(S.signInPid!=null?this.PARTS[S.signInPid].name:''), closeSignIn:()=>this.setState({showSignIn:false, signInPid:null}),
+      signInPinVal:(S.signInPinVal!=null?S.signInPinVal:''), onSignInPin:(e)=>this.setState({signInPinVal:e.target.value}),
+      doSignIn:()=>{ this.submitSignIn(this.state.signInPinVal||''); this.setState({signInPinVal:''}); },
       passNewVal:(S.passNew!=null?S.passNew:''), passConfirmVal:(S.passConfirm!=null?S.passConfirm:''), onPassNew:(e)=>this.setState({passNew:e.target.value, passMsg:''}), onPassConfirm:(e)=>this.setState({passConfirm:e.target.value, passMsg:''}), changePass:()=>this.changePass(), passMsg:S.passMsg||'', passOk:!!S.passOk, hasPassMsg:!!S.passMsg, enteredMaster:!!S.enteredMaster,
       poolCarryVal:(S.poolCarry!=null?S.poolCarry:''), onPoolCarry:(e)=>this.updatePoolCarry(e.target.value),
       poolWinnerCarryVal:(S.poolWinnerCarry!=null?S.poolWinnerCarry:''), onPoolWinnerCarry:(e)=>this.setState({poolWinnerCarry:e.target.value}),
