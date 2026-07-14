@@ -395,9 +395,9 @@ body{margin:0; background:#0a0a0a;}
               <div style="margin-top:10px; display:flex; flex-direction:column; gap:16px;">
                 <sc-for list="{{rosterGroups}}" as="g" hint-placeholder-count="8">
                   <div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;"><span style="font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">{{g.name}}</span><span style="font-family:var(--fb); font-weight:600; font-size:11px; color:var(--fnt);">{{g.count}}</span></div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:9px 12px; background:var(--pan); border-radius:8px;"><span style="font-family:var(--fb); font-weight:800; font-size:13px; color:var(--pin); letter-spacing:.02em;">{{g.name}}</span><span style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--pnum);">{{g.count}}</span></div>
                     <sc-for list="{{g.players}}" as="pl" hint-placeholder-count="5">
-                      <div style="padding:9px 0; border-bottom:1px solid var(--line); font-family:var(--fb); font-weight:500; font-size:14px; color:var(--ink);">{{pl.name}}</div>
+                      <div style="padding:9px 4px; border-bottom:1px solid var(--line); font-family:var(--fb); font-weight:500; font-size:14px; color:var(--ink);">{{pl.name}}</div>
                     </sc-for>
                   </div>
                 </sc-for>
@@ -1959,7 +1959,7 @@ class Component extends DCLogic {
       orderPickChoices:this.PARTS.filter(p=>(S.orderPicks||[]).indexOf(p.id)===-1).map(p=>({ name:p.name, pick:()=>this.tapOrderPick(p.id) })),
       orderBtnLabel:(S.theme==='masters'?'⤮ Shuffle order':'↻ Reverse of '+this.prevEventName(S.theme)),
       orderAction:(S.theme==='masters'?()=>this.shuffleOrder():()=>this.applyAutoOrder()),
-      rosterGroups:this.PARTS.map(p=>({ name:p.name, ini:p.ini, count:drafted.filter(d=>d.pid===p.id).length+'/5',
+      rosterGroups:(S.draftOrder||[0,1,2,3,4,5,6,7]).map(pid=>this.PARTS[pid]).map(p=>({ name:p.name, ini:p.ini, count:drafted.filter(d=>d.pid===p.id).length+'/5',
         players:drafted.map((d,i)=>({d,i})).filter(o=>o.d.pid===p.id).map(o=>({ name:o.d.player, edit:()=>this.openPickEdit(o.i) })) })),
       anyRoster:drafted.length>0, noRoster:drafted.length===0,
       clearDraft:()=>this.clearDraft(), clearDraftLabel:this._confirmClear?'Tap again to confirm — this erases all picks':'Clear draft (start over)',
