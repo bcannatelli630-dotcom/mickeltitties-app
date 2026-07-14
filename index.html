@@ -1212,6 +1212,9 @@ class Component extends DCLogic {
   // Manual override: pull a player off the board (e.g. injury/WD) without waiting on the cache to refresh.
   removedFromBoard(theme){ try{ const r=localStorage.getItem('mtc_removed_'+theme); if(r) return JSON.parse(r); }catch(e){} return []; }
   removePlayerFromBoard(name){
+    const pin=window.prompt('Enter passcode to remove '+name+':');
+    if(pin===null) return;
+    if(pin!==this.userPass() && pin!==this.MASTER_PASSCODE){ this.flash('Incorrect passcode'); return; }
     const theme=this.state.theme; const cur=this.removedFromBoard(theme);
     if(cur.indexOf(name)===-1) cur.push(name);
     try{ localStorage.setItem('mtc_removed_'+theme, JSON.stringify(cur)); }catch(e){}
