@@ -285,7 +285,7 @@ body{margin:0; background:#0a0a0a;}
                   <sc-for list="{{draftScoreFields}}" as="f" hint-placeholder-count="8">
                     <div style="display:flex; align-items:center; gap:10px;">
                       <span style="flex:1; min-width:0; font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{f.name}}</span>
-                      <input value="{{f.guess}}" onInput="{{f.onGuess}}" placeholder="−10" style="width:66px; flex:none; padding:9px 0; text-align:center; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                      <input value="{{f.guess}}" onInput="{{f.onGuess}}" placeholder="" style="width:66px; flex:none; padding:9px 0; text-align:center; border:1px solid var(--line); background:var(--r(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
                     </div>
                   </sc-for>
                 </div>
@@ -2104,7 +2104,7 @@ class Component extends DCLogic {
       isDraftLocked:draftClosed, draftUnlocked:!draftClosed && !draftNotOpen, toggleLock:()=>this.setState(st=>({draftLocked:!st.draftLocked})),
       draftNotOpen, draftOpenStr, draftOpenEventName:liveEventName2, showScorePicks:draftComplete, draftPreview,
       lockHead:(draftPreview?'Draft preview':(draftComplete?'Draft complete':'Rosters are locked')), lockMsg:(draftPreview?'Sample completed-draft screen — nothing here is saved. Exit preview from Settings.':(draftComplete?'All 40 picks are in. Enter each player\u2019s winning-score pick below.':'The board is closed — no more picks can be made.')),
-      draftScoreFields:(draftPreview?[['Brent','\u221218'],['John','\u221214'],['Jake','\u221220'],['Tim','\u221216'],['Mark','\u221212'],['Scott','\u221215'],['Rocco','\u221219'],['Royce','\u221217']].map(function(r){return {name:r[0],guess:r[1],onGuess:function(){}};}):this.PARTS.map(p=>{ const g=((this.scorepoolStore.guesses||{})[S.theme]||{})[p.id]||{}; return { name:p.name, guess:(g.guess!=null?String(g.guess):''), onGuess:(e)=>this.setDraftScore(p.id, e.target.value) }; })), showReopen:!draftComplete,
+      draftScoreFields:(draftPreview?[['Brent','\u221218'],['John','\u221214'],['Jake','\u221220'],['Tim','\u221216'],['Mark','\u221212'],['Scott','\u221215'],['Rocco','\u221219'],['Royce','\u221217']].map(function(r){return {name:r[0],guess:r[1],onGuess:function(){}};}):this.PARTS.map(p=>{ const g=((this.scorepoolStore.guesses||{})[S.theme]||{})[p.id]||{}; const active=this.loadActiveUser(); const allowed=(active===p.id)||(active==null); return { name:p.name, guess:(g.guess!=null?String(g.guess):''), onGuess:(e)=> allowed ? this.setDraftScore(p.id, e.target.value) : this.flash('Sign in as '+p.name.split(' ')[0]+' to enter their score') }; })), showReopen:!draftComplete,
       updatedStr:('Updated '+this.rel(S.lastUpdated)).toUpperCase(), liveStatusStr:'AUTO-REFRESH · 5 MIN', refreshNow:()=>this.poll(),
       toggleSound:()=>this.setState(st=>({soundOn:!st.soundOn})), soundLabel:S.soundOn?'On':'Off', showToast:!!S.toast, toastMsg:S.toast,
       showDetail:S.detail!==null, detail, closeDetail:()=>this.setState({detail:null}),
