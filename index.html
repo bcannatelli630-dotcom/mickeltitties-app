@@ -2000,7 +2000,7 @@ class Component extends DCLogic {
           const isMC = !p.c;
           return {
             n:p.n, effStr:this.par(p.eff),
-            status: isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut',
+            status: !live ? 'Missed cut data TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut'),
             tag: isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'),
             counted: p.counted, isMC,
             dot: p.counted ? 'var(--up)' : 'var(--fnt)',
@@ -2010,7 +2010,7 @@ class Component extends DCLogic {
         });
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
           note: src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.',
-          penaltyStr: src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.' };
+          penaltyStr: !live ? 'Missed cut data TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.') };
       }
     }
 
