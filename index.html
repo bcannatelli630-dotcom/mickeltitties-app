@@ -279,13 +279,16 @@ body{margin:0; background:#0a0a0a;}
             <div style="padding:20px 22px 0; text-align:center; font-family:var(--fb); font-weight:500; font-size:13px; color:var(--mut);">Head to <span style="color:var(--acc); font-weight:700;" onClick="{{goEvent}}">Event</span> to follow the live leaderboard.</div>
             <sc-if value="{{showScorePicks}}" hint-placeholder-val="{{false}}">
               <div style="padding:24px 22px 0;">
-                <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.08em; color:var(--mut);">WINNING-SCORE PICKS</div>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.08em; color:var(--mut);">WINNING-SCORE PICKS</div>
+                  <sc-if value="{{scoreFieldLocked}}" hint-placeholder-val="{{false}}"><span onClick="{{unlockScoreField}}" style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--acc); cursor:pointer;">🔒 Locked · Unlock</span></sc-if>
+                </div>
                 <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--fnt); margin-top:5px; line-height:1.45;">Each player's guess of the event's winning score, to par (e.g. −10, E, +2). Feeds the Winning-Score Pool.</div>
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
                   <sc-for list="{{draftScoreFields}}" as="f" hint-placeholder-count="8">
                     <div style="display:flex; align-items:center; gap:10px;">
                       <span style="flex:1; min-width:0; font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{f.name}}</span>
-                      <input value="{{f.guess}}" onInput="{{f.onGuess}}" placeholder="" style="width:66px; flex:none; padding:9px 0; text-align:center; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                      <input value="{{f.guess}}" onInput="{{f.onGuess}}" readOnly="{{f.readOnly}}" placeholder="" style="width:66px; flex:none; padding:9px 0; text-align:center; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fn); font-weight:700; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
                     </div>
                   </sc-for>
                 </div>
@@ -1683,6 +1686,7 @@ class Component extends DCLogic {
   updatePoolGuess(pid,val){ this.setState(st=>{ const d={...(st.poolDraft||{})}; const c=d[pid]?{...d[pid]}:{in:false,guess:''}; c.guess=val; d[pid]=c; return {poolDraft:d}; }); }
   updatePoolCarry(val){ this.setState({ poolCarry:val }); }
   // Winning-score pick made at the end of the draft — writes straight to the score-pool store (persisted + synced), feeding the pool.
+  unlockScoreField(){ const pin=window.prompt('Enter admin passcode to unlock the winning-score field:'); if(pin===null) return; if(pin.trim()===String(this.MASTER_PASSCODE).trim()){ this.setState({scoreFieldUnlocked:true}); this.flash('Score field unlocked'); } else { this.flash('Incorrect passcode'); } }
   setDraftScore(pid, val){
     const theme=this.state.theme;
     const guesses={...(this.scorepoolStore.guesses||{})};
@@ -1868,6 +1872,8 @@ class Component extends DCLogic {
 
     // ---- winning-score guess pool ----
     const spActual = (this.state.scores && Object.keys(this.state.scores).length) ? (()=>{ const arr=Object.keys(this.state.scores).map(n=>this.state.scores[n]).filter(v=>v&&v.c).map(v=>v.s); return arr.length?Math.min(...arr):null; })() : null;
+    const scoreFinal = spActual!=null && !this.eventLive(S.theme);
+    const scoreFieldLocked = scoreFinal && !S.scoreFieldUnlocked;
     const spGuesses = (this.scorepoolStore.guesses||{})[S.theme]||{};
     const spEnt = this.PARTS.map(p=>{ const g=spGuesses[p.id]||{}; const gtxt=(g.guess!=null?String(g.guess).trim():''); let gv=null; if(gtxt!==''){ gv=(/^e$/i.test(gtxt))?0:parseInt(gtxt,10); if(isNaN(gv)) gv=null; } return { id:p.id, name:p.name.split(' ')[0], full:p.name, isIn:(!!g.in || gv!=null), guess:gv }; });
     const spInCount = spEnt.filter(e=>e.isIn).length;
@@ -2104,7 +2110,8 @@ class Component extends DCLogic {
       isDraftLocked:draftClosed, draftUnlocked:!draftClosed && !draftNotOpen, toggleLock:()=>this.setState(st=>({draftLocked:!st.draftLocked})),
       draftNotOpen, draftOpenStr, draftOpenEventName:liveEventName2, showScorePicks:draftComplete, draftPreview,
       lockHead:(draftPreview?'Draft preview':(draftComplete?'Draft complete':'Rosters are locked')), lockMsg:(draftPreview?'Sample completed-draft screen — nothing here is saved. Exit preview from Settings.':(draftComplete?'All 40 picks are in. Enter each player\u2019s winning-score pick below.':'The board is closed — no more picks can be made.')),
-      draftScoreFields:(draftPreview?[['Brent','\u221218'],['John','\u221214'],['Jake','\u221220'],['Tim','\u221216'],['Mark','\u221212'],['Scott','\u221215'],['Rocco','\u221219'],['Royce','\u221217']].map(function(r){return {name:r[0],guess:r[1],onGuess:function(){}};}):this.PARTS.map(p=>{ const g=((this.scorepoolStore.guesses||{})[S.theme]||{})[p.id]||{}; const active=this.loadActiveUser(); const allowed=(active===p.id)||(active==null); return { name:p.name, guess:(g.guess!=null?String(g.guess):''), onGuess:(e)=> allowed ? this.setDraftScore(p.id, e.target.value) : this.flash('Sign in as '+p.name.split(' ')[0]+' to enter their score') }; })), showReopen:!draftComplete,
+      draftScoreFields:(draftPreview?[['Brent','\u221218'],['John','\u221214'],['Jake','\u221220'],['Tim','\u221216'],['Mark','\u221212'],['Scott','\u221215'],['Rocco','\u221219'],['Royce','\u221217']].map(function(r){return {name:r[0],guess:r[1],onGuess:function(){}};}):this.PARTS.map(p=>{ const g=((this.scorepoolStore.guesses||{})[S.theme]||{})[p.id]||{}; const active=this.loadActiveUser(); const allowed=(active===p.id)||(active==null); return { name:p.name, guess:(g.guess!=null?String(g.guess):''), onGuess:(e)=> scoreFieldLocked ? this.flash('Score locked — enter admin passcode to edit') : (allowed ? this.setDraftScore(p.id, e.target.value) : this.flash('Sign in as '+p.name.split(' ')[0]+' to enter their score')), readOnly: scoreFieldLocked }; })), showReopen:!draftComplete,
+      scoreFieldLocked, scoreFinal, unlockScoreField:()=>this.unlockScoreField(),
       updatedStr:('Updated '+this.rel(S.lastUpdated)).toUpperCase(), liveStatusStr:'AUTO-REFRESH · 5 MIN', refreshNow:()=>this.poll(),
       toggleSound:()=>this.setState(st=>({soundOn:!st.soundOn})), soundLabel:S.soundOn?'On':'Off', showToast:!!S.toast, toastMsg:S.toast,
       showDetail:S.detail!==null, detail, closeDetail:()=>this.setState({detail:null}),
