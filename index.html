@@ -277,6 +277,24 @@ body{margin:0; background:#0a0a0a;}
               <div style="font-family:var(--fb); font-weight:500; font-size:13px; color:var(--psub); margin-top:12px; line-height:1.55; max-width:280px; margin-left:auto; margin-right:auto;">{{lockMsg}}</div>
             </div>
             <div style="padding:20px 22px 0; text-align:center; font-family:var(--fb); font-weight:500; font-size:13px; color:var(--mut);">Head to <span style="color:var(--acc); font-weight:700;" onClick="{{goEvent}}">Event</span> to follow the live leaderboard.</div>
+            <div style="padding:14px 22px 0;">
+              <button onClick="{{toggleLockedRosters}}" style="width:100%; padding:13px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:700; font-size:13px; border-radius:var(--rad); cursor:pointer;">{{lockedRostersLabel}}</button>
+            </div>
+            <sc-if value="{{showLockedRosters}}" hint-placeholder-val="{{false}}">
+              <div style="padding:16px 22px 0;">
+                <sc-for list="{{rosterGroups}}" as="g" hint-placeholder-count="8">
+                  <div style="margin-bottom:14px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); overflow:hidden;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 14px; background:var(--pan);">
+                      <span style="font-family:var(--fd); font-size:16px; color:var(--pin);">{{g.name}}</span>
+                      <span style="font-family:var(--fb); font-weight:600; font-size:11px; color:var(--psub);">{{g.count}}</span>
+                    </div>
+                    <sc-for list="{{g.players}}" as="pl" hint-placeholder-count="5">
+                      <div style="padding:10px 14px; border-bottom:1px solid var(--line); font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink);">{{pl.name}}</div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
             <sc-if value="{{showScorePicks}}" hint-placeholder-val="{{false}}">
               <div style="padding:24px 22px 0;">
                 <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -2092,8 +2110,9 @@ class Component extends DCLogic {
       orderBtnLabel:(S.theme==='masters'?'⤮ Shuffle order':'↻ Reverse of '+this.prevEventName(S.theme)),
       orderAction:(S.theme==='masters'?()=>this.shuffleOrder():()=>this.applyAutoOrder()),
       rosterGroups:(S.draftOrder||[0,1,2,3,4,5,6,7]).map(pid=>this.PARTS[pid]).map(p=>({ name:p.name, ini:p.ini, count:drafted.filter(d=>d.pid===p.id).length+'/5',
-        players:drafted.map((d,i)=>({d,i})).filter(o=>o.d.pid===p.id).map(o=>({ name:o.d.player, edit:()=>this.openPickEdit(o.i) })) })),
+        players:drafted.map((d,i)=>({d,i})).filter(o=>o.d.pid===p.id).map(o=>({ name:o.d.player, edit:()=>this.requireDraftAuth(()=>this.openPickEdit(o.i)) })) })),
       anyRoster:drafted.length>0, noRoster:drafted.length===0,
+      showLockedRosters:!!S.showLockedRosters, toggleLockedRosters:()=>this.setState(st=>({showLockedRosters:!st.showLockedRosters})), lockedRostersLabel:S.showLockedRosters?'Hide rosters':'View rosters',
       clearDraft:()=>this.requireDraftAuth(()=>this.clearDraft()), clearDraftLabel:this._confirmClear?'Tap again to confirm — this erases all picks':'Clear draft (start over)',
       showPickEdit:!!pickEdit, pickEdit, closePickEdit:()=>this.closePickEdit(),
       draftSearch:S.draftSearch, onDraftSearch:(e)=>this.setState({draftSearch:e.target.value}),
