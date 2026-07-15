@@ -1687,8 +1687,17 @@ class Component extends DCLogic {
     const theme=this.state.theme;
     const guesses={...(this.scorepoolStore.guesses||{})};
     const ev={...(guesses[theme]||{})};
+    const trimmed=(val||'').trim();
+    if(trimmed!==''){
+      const parseScore=(s)=>{ const t=String(s).trim(); if(t==='') return null; if(/^e$/i.test(t)) return 0; const n=parseInt(t,10); return isNaN(n)?null:n; };
+      const newVal=parseScore(trimmed);
+      if(newVal!==null){
+        const dupe=Object.keys(ev).some(otherId=> otherId!==String(pid) && parseScore((ev[otherId]||{}).guess)===newVal);
+        if(dupe){ this.flash('Score Taken; Please Pick Another Score'); this.forceUpdate(); return; }
+      }
+    }
     const cur={...(ev[pid]||{in:false,guess:''})};
-    cur.guess=(val||'').trim();
+    cur.guess=trimmed;
     ev[pid]=cur; guesses[theme]=ev;
     this.scorepoolStore={ ...this.scorepoolStore, guesses };
     try{ localStorage.setItem('mtc_scorepool', JSON.stringify(this.scorepoolStore)); }catch(e){}
