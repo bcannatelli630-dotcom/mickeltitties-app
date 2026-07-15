@@ -1961,7 +1961,11 @@ class Component extends DCLogic {
       .sort((a,b)=>{ const oa=this.oddsVal(a.odds), ob=this.oddsVal(b.odds); if(oa==null&&ob==null) return a.n.localeCompare(b.n); if(oa==null) return 1; if(ob==null) return -1; return oa-ob; });
     const avail = q ? availAll.filter(a=>(a.n||'').toLowerCase().includes(q)) : availAll;
     const oddsCache = this.loadOddsCache(S.theme);
-    const norm=(s)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+    const norm=(s)=>{ let t=String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+      const NICK={matthew:'matt',christopher:'chris',michael:'mike',robert:'rob',william:'will',thomas:'tom',daniel:'dan',samuel:'sam',benjamin:'ben',joseph:'joe',alexander:'alex',nicholas:'nick',anthony:'tony',jonathan:'jon',patrick:'pat',charles:'charlie'};
+      const parts=t.split(/\s+/); if(parts.length && NICK[parts[0]]) parts[0]=NICK[parts[0]];
+      return parts.join(' ');
+    };
     const draftedNames = new Set((S.drafted||[]).map(x=>norm(x.player)));
     const rankings = (oddsCache||[]).map((o,i)=>({ pos:i+1, name:o.name, priceStr:(o.price>0?'+':'')+o.price, taken:draftedNames.has(norm(o.name)) }));
     const availCountStr = 'AVAILABLE \u00b7 ' + availAll.length;
