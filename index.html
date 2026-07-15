@@ -309,10 +309,12 @@ body{margin:0; background:#0a0a0a;}
           </div>
 
           <div style="display:flex; gap:5px; margin:14px 22px 0; background:var(--card); border:1px solid var(--line); padding:4px; border-radius:var(--rad);">
-            <sc-if value="{{draftTabActive}}" hint-placeholder-val="{{true}}"><div onClick="{{showDraftTab}}" style="flex:1; text-align:center; padding:9px; background:var(--acc); color:var(--aci); border-radius:calc(var(--rad) - 1px); font-family:var(--fb); font-weight:700; font-size:12px; cursor:pointer;">Draft</div></sc-if>
-            <sc-if value="{{rostersTabActive2}}" hint-placeholder-val="{{false}}"><div onClick="{{showDraftTab}}" style="flex:1; text-align:center; padding:9px; color:var(--mut); font-family:var(--fb); font-weight:600; font-size:12px; cursor:pointer;">Draft</div></sc-if>
-            <sc-if value="{{rostersTabActive2}}" hint-placeholder-val="{{false}}"><div onClick="{{showRostersTab}}" style="flex:1; text-align:center; padding:9px; background:var(--acc); color:var(--aci); border-radius:calc(var(--rad) - 1px); font-family:var(--fb); font-weight:700; font-size:12px; cursor:pointer;">Rosters</div></sc-if>
-            <sc-if value="{{draftTabActive}}" hint-placeholder-val="{{true}}"><div onClick="{{showRostersTab}}" style="flex:1; text-align:center; padding:9px; color:var(--mut); font-family:var(--fb); font-weight:600; font-size:12px; cursor:pointer;">Rosters</div></sc-if>
+            <sc-if value="{{tabDraftActive}}" hint-placeholder-val="{{true}}"><div onClick="{{showDraftTab}}" style="flex:1; text-align:center; padding:9px; background:var(--acc); color:var(--aci); border-radius:calc(var(--rad) - 1px); font-family:var(--fb); font-weight:700; font-size:12px; cursor:pointer;">Draft</div></sc-if>
+            <sc-if value="{{tabDraftIdle}}" hint-placeholder-val="{{false}}"><div onClick="{{showDraftTab}}" style="flex:1; text-align:center; padding:9px; color:var(--mut); font-family:var(--fb); font-weight:600; font-size:12px; cursor:pointer;">Draft</div></sc-if>
+            <sc-if value="{{tabRostersActive}}" hint-placeholder-val="{{false}}"><div onClick="{{showRostersTab}}" style="flex:1; text-align:center; padding:9px; background:var(--acc); color:var(--aci); border-radius:calc(var(--rad) - 1px); font-family:var(--fb); font-weight:700; font-size:12px; cursor:pointer;">Rosters</div></sc-if>
+            <sc-if value="{{tabRostersIdle}}" hint-placeholder-val="{{true}}"><div onClick="{{showRostersTab}}" style="flex:1; text-align:center; padding:9px; color:var(--mut); font-family:var(--fb); font-weight:600; font-size:12px; cursor:pointer;">Rosters</div></sc-if>
+            <sc-if value="{{tabRankingsActive}}" hint-placeholder-val="{{false}}"><div onClick="{{showRankingsTab}}" style="flex:1; text-align:center; padding:9px; background:var(--acc); color:var(--aci); border-radius:calc(var(--rad) - 1px); font-family:var(--fb); font-weight:700; font-size:12px; cursor:pointer;">Rankings</div></sc-if>
+            <sc-if value="{{tabRankingsIdle}}" hint-placeholder-val="{{true}}"><div onClick="{{showRankingsTab}}" style="flex:1; text-align:center; padding:9px; color:var(--mut); font-family:var(--fb); font-weight:600; font-size:12px; cursor:pointer;">Rankings</div></sc-if>
           </div>
 
           <sc-if value="{{draftTabActive}}" hint-placeholder-val="{{true}}">
@@ -404,6 +406,22 @@ body{margin:0; background:#0a0a0a;}
                   </div>
                 </sc-for>
               </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{tabRankingsActive}}" hint-placeholder-val="{{false}}">
+            <div style="padding:16px 22px 0;">
+              <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-bottom:10px; line-height:1.5;">Field ranked by odds to win (favorites first). Reference only — draft order/board is unaffected.</div>
+              <sc-if value="{{noOdds}}" hint-placeholder-val="{{false}}">
+                <div style="padding:22px; text-align:center; font-family:var(--fb); font-weight:600; font-size:13px; color:var(--fnt);">Odds not posted yet for this event.</div>
+              </sc-if>
+              <sc-for list="{{rankings}}" as="rk" hint-placeholder-count="10">
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--line);">
+                  <span style="width:26px; font-family:var(--fn); font-weight:700; font-size:14px; color:var(--fnt);">{{rk.pos}}</span>
+                  <div style="flex:1; min-width:0; font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{rk.name}}</div>
+                  <span style="font-family:var(--fn); font-weight:700; font-size:13px; color:var(--acc);">{{rk.priceStr}}</span>
+                </div>
+              </sc-for>
             </div>
           </sc-if>
         </div>
@@ -1283,6 +1301,7 @@ class Component extends DCLogic {
   // Everything else — best-4-of-5, missed-cut substitution, pots, standings — recomputes itself.
   LIVE_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/leaderboard';
   FIELD_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/field';
+  ODDS_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/odds';
   STATE_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/state';            // set to .../api/state once the shared database is live
   SYNC_KEY = 'mtc-2026';          // light write-guard shared with the backend
   USE_LIVE_FEED = true;
@@ -1325,6 +1344,18 @@ class Component extends DCLogic {
     const removed = new Set(this.removedFromBoard(this.state.theme));
     const taken = new Set((this.state.drafted || []).map(x => x.player));
     this.setState({ field: list.filter(p => !taken.has(p.n) && !removed.has(p.n)) });
+  }
+  // Rankings tab: odds cached 12h per event (free-tier friendly). Reference-only, doesn't touch the draft board.
+  loadOddsCache(theme){ try{ const r=localStorage.getItem('mtc_odds_'+theme); if(r){ const o=JSON.parse(r); if((Date.now()-o.t)<43200000) return o.list; } }catch(e){} return null; }
+  async loadOdds(force){
+    const theme=this.state.theme;
+    if(!force){ const c=this.loadOddsCache(theme); if(c){ this.forceUpdate(); return; } }
+    try{
+      const r=await fetch(this.ODDS_ENDPOINT+'?event='+theme); const d=await r.json();
+      const list=(d.odds||[]).slice().sort((a,b)=>a.price-b.price);
+      try{ localStorage.setItem('mtc_odds_'+theme, JSON.stringify({ t:Date.now(), list })); }catch(e){}
+      this.forceUpdate();
+    }catch(e){}
   }
   // Manual override: pull a player off the board (e.g. injury/WD) without waiting on the cache to refresh.
   removedFromBoard(theme){ try{ const r=localStorage.getItem('mtc_removed_'+theme); if(r) return JSON.parse(r); }catch(e){} return []; }
@@ -1928,6 +1959,8 @@ class Component extends DCLogic {
     const availAll = (S.field||[]).map(f=>({ ...f, draft:()=>this.requireOnClockAuth(ocPart.id, ocPart.name, ()=>this.draftPlayer(f.n)), remove:()=>this.removePlayerFromBoard(f.n) }))
       .sort((a,b)=>{ const oa=this.oddsVal(a.odds), ob=this.oddsVal(b.odds); if(oa==null&&ob==null) return a.n.localeCompare(b.n); if(oa==null) return 1; if(ob==null) return -1; return oa-ob; });
     const avail = q ? availAll.filter(a=>(a.n||'').toLowerCase().includes(q)) : availAll;
+    const oddsCache = this.loadOddsCache(S.theme);
+    const rankings = (oddsCache||[]).map((o,i)=>({ pos:i+1, name:o.name, priceStr:(o.price>0?'+':'')+o.price }));
     const availCountStr = 'AVAILABLE \u00b7 ' + availAll.length;
     const recent = drafted.slice(-3).reverse().map(d=>({ n:d.player, by:this.PARTS[d.pid].name.split(' ')[0] }));
     // full tournament leaderboard (everyone in the field, not just drafted)
@@ -2046,7 +2079,12 @@ class Component extends DCLogic {
       clockFeatureOn, clockArmed:!!S.clockArmed, clockNotArmed:!S.clockArmed, clockExpired, clockNotExpired:!clockExpired,
       togglePause:()=>this.setState(st=>({running:!st.running})), runLabel:S.running?'Pause clock':'Resume clock',
       undo:()=>this.requireDraftAuth(()=>this.undo()), resetDraft:()=>this.requireDraftAuth(()=>this.resetDraft()),
-      draftTabActive:S.draftView!=='rosters', rostersTabActive2:S.draftView==='rosters', showDraftTab:()=>this.setState({draftView:'draft'}), showRostersTab:()=>this.setState({draftView:'rosters'}),
+      draftTabActive:S.draftView!=='rosters' && S.draftView!=='rankings', rostersTabActive2:S.draftView==='rosters',
+      tabDraftActive:S.draftView!=='rosters' && S.draftView!=='rankings', tabDraftIdle:S.draftView==='rosters' || S.draftView==='rankings',
+      tabRostersActive:S.draftView==='rosters', tabRostersIdle:S.draftView!=='rosters',
+      tabRankingsActive:S.draftView==='rankings', tabRankingsIdle:S.draftView!=='rankings',
+      showDraftTab:()=>this.setState({draftView:'draft'}), showRostersTab:()=>this.setState({draftView:'rosters'}), showRankingsTab:()=>{ this.setState({draftView:'rankings'}); this.loadOdds(); },
+      rankings, noOdds:!rankings.length,
       isDraftLocked:draftClosed, draftUnlocked:!draftClosed && !draftNotOpen, toggleLock:()=>this.setState(st=>({draftLocked:!st.draftLocked})),
       draftNotOpen, draftOpenStr, draftOpenEventName:liveEventName2, showScorePicks:draftComplete, draftPreview,
       lockHead:(draftPreview?'Draft preview':(draftComplete?'Draft complete':'Rosters are locked')), lockMsg:(draftPreview?'Sample completed-draft screen — nothing here is saved. Exit preview from Settings.':(draftComplete?'All 40 picks are in. Enter each player\u2019s winning-score pick below.':'The board is closed — no more picks can be made.')),
