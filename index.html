@@ -1961,8 +1961,9 @@ class Component extends DCLogic {
       .sort((a,b)=>{ const oa=this.oddsVal(a.odds), ob=this.oddsVal(b.odds); if(oa==null&&ob==null) return a.n.localeCompare(b.n); if(oa==null) return 1; if(ob==null) return -1; return oa-ob; });
     const avail = q ? availAll.filter(a=>(a.n||'').toLowerCase().includes(q)) : availAll;
     const oddsCache = this.loadOddsCache(S.theme);
-    const draftedNames = new Set((S.drafted||[]).map(x=>x.player));
-    const rankings = (oddsCache||[]).map((o,i)=>({ pos:i+1, name:o.name, priceStr:(o.price>0?'+':'')+o.price, taken:draftedNames.has(o.name) }));
+    const norm=(s)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+    const draftedNames = new Set((S.drafted||[]).map(x=>norm(x.player)));
+    const rankings = (oddsCache||[]).map((o,i)=>({ pos:i+1, name:o.name, priceStr:(o.price>0?'+':'')+o.price, taken:draftedNames.has(norm(o.name)) }));
     const availCountStr = 'AVAILABLE \u00b7 ' + availAll.length;
     const recent = drafted.slice(-3).reverse().map(d=>({ n:d.player, by:this.PARTS[d.pid].name.split(' ')[0] }));
     // full tournament leaderboard (everyone in the field, not just drafted)
