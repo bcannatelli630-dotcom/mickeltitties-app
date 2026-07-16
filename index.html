@@ -167,8 +167,11 @@ body{margin:0; background:#0a0a0a;}
               <div><div style="font-family:var(--fd); font-size:30px; color:var(--ink); line-height:1;">{{liveEventName2}}</div><div style="font-family:var(--fb); font-weight:600; font-size:11px; letter-spacing:.05em; color:var(--mut); margin-top:6px;">{{eventRoundLong}} · {{updatedStr}}</div></div>
               <span style="display:flex; align-items:center; gap:6px; background:var(--live); padding:5px 9px; border-radius:999px; margin-top:4px;"><span style="width:7px; height:7px; border-radius:50%; background:var(--livei); animation:mtPulse 1.4s infinite;"></span><span style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.1em; color:var(--livei);">LIVE</span></span>
             </div>
-            <div style="display:flex; gap:24px; margin-top:18px; border-bottom:1px solid var(--line);">
-              <div style="padding-bottom:10px; border-bottom:2px solid var(--acc); font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">This Event</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; border-bottom:1px solid var(--line); padding-bottom:10px;">
+              <div style="padding-bottom:10px; margin-bottom:-11px; border-bottom:2px solid var(--acc); font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">This Event</div>
+              <sc-if value="{{showProjCut}}" hint-placeholder-val="{{false}}">
+                <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">Projected Cut</span><span style="font-family:var(--fn); font-weight:700; font-size:22px; color:var(--acc);">{{projCutStr}}</span></div>
+              </sc-if>
             </div>
           </div>
           <sc-if value="{{notLive}}" hint-placeholder-val="{{false}}">
@@ -226,12 +229,6 @@ body{margin:0; background:#0a0a0a;}
           </sc-if>
 
           <sc-if value="{{eventViewField}}" hint-placeholder-val="{{false}}">
-            <sc-if value="{{showProjCut}}" hint-placeholder-val="{{false}}">
-              <div style="margin:14px 22px 0; padding:11px 15px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.06em; color:var(--mut);">PROJECTED CUT LINE</span>
-                <span style="font-family:var(--fn); font-weight:700; font-size:18px; color:var(--ink);">{{projCutStr}}</span>
-              </div>
-            </sc-if>
             <sc-if value="{{fieldEmpty}}" hint-placeholder-val="{{false}}">
               <div style="margin:16px 22px 0; padding:26px 22px; background:var(--pan); border-radius:var(--rad); text-align:center; font-family:var(--fb); font-weight:600; font-size:13px; color:var(--psub);">The full field appears here once live scoring begins.</div>
             </sc-if>
@@ -1428,6 +1425,7 @@ class Component extends DCLogic {
     this._t = setInterval(()=>{ this.setState(st => (st.running && st.clockArmed && st.clock>0) ? { clock: st.clock-1 } : null); }, 1000);
     if (!this.state.scores) this.setState({ scores:this.baseScores(), lastUpdated:Date.now() });
     if (this.USE_LIVE_FEED) this.loadLiveField();
+    if (this.USE_LIVE_FEED && this.eventLive(this.state.theme)) this.poll();  // don't wait up to 5 min for the first load
     // Poll only during active tournament hours (Thu–Sun of the selected major) and only while the tab is visible — conserves API quota.
     this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.eventLive(this.state.theme)) this.poll(); }, 300000);
     this._lastPick = this.state.pickIdx;
