@@ -1580,7 +1580,7 @@ class Component extends DCLogic {
   computeEvent(id) {
     const sc = this.state.scores;
     const roster = this.DEMO_MODE ? this.ROSTERS[id] : ((this.state.drafted||[]).filter(d=>d.pid===id).map(d=>[d.player,0,1]));
-    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc }; });
+    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const started = !!(lv && (lv.s!==0 || lv.c===false || (lv.thru!=null && lv.thru!=='' && lv.thru!=='0'))); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
     const made = players.filter(p=>p.c).map(p=>p.s);
     const worst = this.anchorScore();   // field-wide anchorman, not just this participant's roster
     players.forEach(p=>{ p.eff = p.c ? p.s : worst+this.scoring.mcPenalty; });
@@ -2033,10 +2033,11 @@ class Component extends DCLogic {
       if (src) {
         const players = src.players.map(p=>{
           const isMC = !p.c;
+          const started = this.DEMO_MODE || p.started;
           return {
             n:p.n, effStr:this.par(p.eff),
-            status: !live ? 'Missed cut data TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut'),
-            tag: isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'),
+            status: !started ? 'Cut Information TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut'),
+            tag: !started ? 'TBD' : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED')),
             counted: p.counted, isMC,
             dot: p.counted ? 'var(--up)' : 'var(--fnt)',
             nameCol: p.counted ? 'var(--ink)' : 'var(--mut)',
@@ -2045,7 +2046,7 @@ class Component extends DCLogic {
         });
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
           note: src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.',
-          penaltyStr: !live ? 'Missed cut data TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.') };
+          penaltyStr: (players.length && players.every(p=>p.status==='Cut Information TBD')) ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
       }
     }
 
