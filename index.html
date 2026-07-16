@@ -1713,11 +1713,11 @@ class Component extends DCLogic {
   // News tab — proxied through your feed backend (api/news.js) so the GNews call runs
   // server-side, avoiding browser CORS issues and keeping the key off phones.
   loadNews(){
-    const cacheKey = 'mtc_news_'+this.state.theme;
+    const cacheKey = 'mtc_news_v2_'+this.state.theme;
     let cached=null; try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
     if (cached && (Date.now()-cached.t) < 3600000) { this.setState({ newsItems:cached.items, newsLoading:false, newsErr:false }); return; }
     this.setState({ newsLoading:true, newsErr:false });
-    fetch(this.NEWS_ENDPOINT + '?q=' + encodeURIComponent(this.currentEventNm()))
+    fetch(this.NEWS_ENDPOINT + '?q=' + encodeURIComponent(this.currentEventNm() + ' golf'))
       .then(r=>{ if(!r.ok) throw new Error('bad status'); return r.json(); })
       .then(d=>{
         const items = (d.articles||[]).map(a=>({
