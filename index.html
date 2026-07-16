@@ -1580,7 +1580,7 @@ class Component extends DCLogic {
   computeEvent(id) {
     const sc = this.state.scores;
     const roster = this.DEMO_MODE ? this.ROSTERS[id] : ((this.state.drafted||[]).filter(d=>d.pid===id).map(d=>[d.player,0,1]));
-    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const started = !!(lv && (lv.s!==0 || lv.c===false || (lv.thru!=null && lv.thru!=='' && lv.thru!=='0'))); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
+    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.c===false || roundDone)); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
     const made = players.filter(p=>p.c).map(p=>p.s);
     const worst = this.anchorScore();   // field-wide anchorman, not just this participant's roster
     players.forEach(p=>{ p.eff = p.c ? p.s : worst+this.scoring.mcPenalty; });
@@ -2045,7 +2045,7 @@ class Component extends DCLogic {
           };
         });
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
-          note: src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.',
+          note: players.every(p=>p.status==='Cut Information TBD') ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.'),
           penaltyStr: (players.length && players.every(p=>p.status==='Cut Information TBD')) ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
       }
     }
