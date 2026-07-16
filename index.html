@@ -1969,7 +1969,9 @@ class Component extends DCLogic {
     // ---- winning-score guess pool ----
     const spActual = (this.state.scores && Object.keys(this.state.scores).length) ? (()=>{ const arr=Object.keys(this.state.scores).map(n=>this.state.scores[n]).filter(v=>v&&v.c).map(v=>v.s); return arr.length?Math.min(...arr):null; })() : null;
     const scoreFinal = spActual!=null && !this.eventLive(S.theme);
-    const scoreFieldLocked = scoreFinal && !S.scoreFieldUnlocked;
+    const spGuessesEarly = (this.scorepoolStore.guesses||{})[S.theme]||{};
+    const allEntered = this.PARTS.every(p=>{ const t=(spGuessesEarly[p.id]&&spGuessesEarly[p.id].guess!=null)?String(spGuessesEarly[p.id].guess).trim():''; return t!==''; });
+    const scoreFieldLocked = (scoreFinal || allEntered) && !S.scoreFieldUnlocked;
     const spGuesses = (this.scorepoolStore.guesses||{})[S.theme]||{};
     const spEnt = this.PARTS.map(p=>{ const g=spGuesses[p.id]||{}; const gtxt=(g.guess!=null?String(g.guess).trim():''); let gv=null; if(gtxt!==''){ gv=(/^e$/i.test(gtxt))?0:parseInt(gtxt,10); if(isNaN(gv)) gv=null; } return { id:p.id, name:p.name.split(' ')[0], full:p.name, isIn:(!!g.in || gv!=null), guess:gv }; });
     const spInCount = spEnt.filter(e=>e.isIn).length;
