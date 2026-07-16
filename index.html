@@ -1817,7 +1817,7 @@ class Component extends DCLogic {
     const leader = standings[0];
     const rest = standings.slice(1);
     const eventTop3 = standings.slice(0,3).map(s=>({ r:s.r, name:s.name, totalStr:s.totalStr, tcol:s.tcol, thru:s.thru }));
-    const hasScores = !!(S.scores && Object.keys(S.scores).length);
+    const hasScores = !!(S.scores && Object.keys(S.scores).length && Object.values(S.scores).some(v=>v && (v.s!==0 || v.c===false)));
     const live = this.DEMO_MODE || (hasScores && this.eventLive(S.theme));            // event scoring is live (feed can return placeholder rows before tee-off)
     const anyDrafted = (S.drafted||[]).length > 0;
     // live finish positions for the CURRENT event (rank by best-4 total) so the season fills in live
