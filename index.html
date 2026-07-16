@@ -1360,6 +1360,7 @@ class Component extends DCLogic {
   LIVE_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/leaderboard';
   FIELD_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/field';
   ODDS_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/odds';
+  NEWS_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/news';
   STATE_ENDPOINT = 'https://mickeltitties-feed.vercel.app/api/state';            // set to .../api/state once the shared database is live
   SYNC_KEY = 'mtc-2026';          // light write-guard shared with the backend
   USE_LIVE_FEED = true;
@@ -1709,19 +1710,15 @@ class Component extends DCLogic {
   updateHistory(i,field,val){ this.setState(st=>{ const h=(st.historyDraft||[]).map(x=>({...x})); if(h[i]) h[i][field]=val; return {historyDraft:h}; }); }
   addHistory(){ this.setState(st=>({ historyDraft:(st.historyDraft||[]).concat([{yr:'',champ:'',cup:'',cuts:''}]), settingsTab:'history' })); }
   removeHistory(i){ this.setState(st=>({ historyDraft:(st.historyDraft||[]).filter((x,j)=>j!==i) })); }
-  // News tab — GNews.io free tier (100 req/day). Set your key below; safe as a client key since
-  // GNews's free tier is rate-limited per-key anyway, same tradeoff as the Odds API tab.
-  NEWS_API_KEY = 'aa077ffb2f24c2d10dbfd0f36103981d';
+  // News tab — proxied through your feed backend (api/news.js) so the GNews call runs
+  // server-side, avoiding browser CORS issues and keeping the key off phones.
   loadNews(){
-    if (!this.NEWS_API_KEY) { this.setState({ newsErr:true, newsLoading:false }); return; }
-    // Cache 1 hour — cap GNews calls to ~24/day regardless of how often people open the tab.
     const cacheKey = 'mtc_news_'+this.state.theme;
     let cached=null; try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
     if (cached && (Date.now()-cached.t) < 3600000) { this.setState({ newsItems:cached.items, newsLoading:false, newsErr:false }); return; }
-    const q = encodeURIComponent(this.currentEventNm());
     this.setState({ newsLoading:true, newsErr:false });
-    fetch(`https://gnews.io/api/v4/search?q=${q}&lang=en&max=10&apikey=${this.NEWS_API_KEY}`)
-      .then(r=>r.json())
+    fetch(this.NEWS_ENDPOINT + '?q=' + encodeURIComponent(this.currentEventNm()))
+      .then(r=>{ if(!r.ok) throw new Error('bad status'); return r.json(); })
       .then(d=>{
         const items = (d.articles||[]).map(a=>({
           title:a.title, src:(a.source&&a.source.name)||'', when:this.rel(new Date(a.publishedAt).getTime()), url:a.url,
