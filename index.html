@@ -1580,7 +1580,7 @@ class Component extends DCLogic {
   computeEvent(id) {
     const sc = this.state.scores;
     const roster = this.DEMO_MODE ? this.ROSTERS[id] : ((this.state.drafted||[]).filter(d=>d.pid===id).map(d=>[d.player,0,1]));
-    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.c===false || roundDone)); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
+    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.started!==undefined ? lv.started : (lv.c===false || roundDone))); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
     const made = players.filter(p=>p.c).map(p=>p.s);
     const worst = this.anchorScore();   // field-wide anchorman, not just this participant's roster
     players.forEach(p=>{ p.eff = p.c ? p.s : worst+this.scoring.mcPenalty; });
