@@ -701,9 +701,15 @@ body{margin:0; background:#0a0a0a;}
           </sc-if>
           <div style="padding:14px 22px 0;">
             <sc-for list="{{newsRows}}" as="n" hint-placeholder-count="5">
-              <div onClick="{{n.open}}" style="padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer;">
-                <div style="font-family:var(--fb); font-weight:700; font-size:14px; color:var(--ink); line-height:1.35;">{{n.title}}</div>
-                <div style="font-family:var(--fb); font-weight:600; font-size:11px; color:var(--mut); margin-top:5px;">{{n.src}} · {{n.when}}</div>
+              <div onClick="{{n.open}}" style="display:flex; gap:12px; padding:14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--acc); border-radius:var(--rad); cursor:pointer;">
+                <img src="{{n.favicon}}" style="width:28px; height:28px; border-radius:7px; flex:none; margin-top:2px; background:var(--line); object-fit:contain;" onerror="this.style.visibility='hidden'" />
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:var(--fb); font-weight:700; font-size:14px; color:var(--ink); line-height:1.35;">{{n.title}}</div>
+                  <div style="display:flex; align-items:center; gap:6px; margin-top:6px;">
+                    <span style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--acc); letter-spacing:.03em;">{{n.src}}</span>
+                    <span style="font-family:var(--fb); font-weight:600; font-size:11px; color:var(--fnt);">· {{n.when}}</span>
+                  </div>
+                </div>
               </div>
             </sc-for>
           </div>
@@ -1713,17 +1719,21 @@ class Component extends DCLogic {
   // News tab — proxied through your feed backend (api/news.js) so the GNews call runs
   // server-side, avoiding browser CORS issues and keeping the key off phones.
   loadNews(){
-    const cacheKey = 'mtc_news_v2_'+this.state.theme;
+    const cacheKey = 'mtc_news_v3_'+this.state.theme;
     let cached=null; try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
     if (cached && (Date.now()-cached.t) < 3600000) { this.setState({ newsItems:cached.items, newsLoading:false, newsErr:false }); return; }
     this.setState({ newsLoading:true, newsErr:false });
     fetch(this.NEWS_ENDPOINT + '?q=' + encodeURIComponent(this.currentEventNm() + ' golf'))
       .then(r=>{ if(!r.ok) throw new Error('bad status'); return r.json(); })
       .then(d=>{
-        const items = (d.articles||[]).map(a=>({
-          title:a.title, src:(a.source&&a.source.name)||'', when:this.rel(new Date(a.publishedAt).getTime()), url:a.url,
-          open:()=>{ try{ window.open(a.url,'_blank'); }catch(e){} }
-        }));
+        const items = (d.articles||[]).map(a=>{
+          let domain=''; try{ domain=new URL(a.url).hostname.replace(/^www\./,''); }catch(e){}
+          return {
+            title:a.title, src:(a.source&&a.source.name)||domain, when:this.rel(new Date(a.publishedAt).getTime()), url:a.url,
+            favicon: domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '',
+            open:()=>{ try{ window.open(a.url,'_blank'); }catch(e){} }
+          };
+        });
         try{ localStorage.setItem(cacheKey, JSON.stringify({ t:Date.now(), items })); }catch(e){}
         this.setState({ newsItems:items, newsLoading:false });
       })
