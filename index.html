@@ -1714,6 +1714,10 @@ class Component extends DCLogic {
   NEWS_API_KEY = 'aa077ffb2f24c2d10dbfd0f36103981d';
   loadNews(){
     if (!this.NEWS_API_KEY) { this.setState({ newsErr:true, newsLoading:false }); return; }
+    // Cache 1 hour — cap GNews calls to ~24/day regardless of how often people open the tab.
+    const cacheKey = 'mtc_news_'+this.state.theme;
+    let cached=null; try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
+    if (cached && (Date.now()-cached.t) < 3600000) { this.setState({ newsItems:cached.items, newsLoading:false, newsErr:false }); return; }
     const q = encodeURIComponent(this.currentEventNm());
     this.setState({ newsLoading:true, newsErr:false });
     fetch(`https://gnews.io/api/v4/search?q=${q}&lang=en&max=10&apikey=${this.NEWS_API_KEY}`)
@@ -1723,6 +1727,7 @@ class Component extends DCLogic {
           title:a.title, src:(a.source&&a.source.name)||'', when:this.rel(new Date(a.publishedAt).getTime()), url:a.url,
           open:()=>{ try{ window.open(a.url,'_blank'); }catch(e){} }
         }));
+        try{ localStorage.setItem(cacheKey, JSON.stringify({ t:Date.now(), items })); }catch(e){}
         this.setState({ newsItems:items, newsLoading:false });
       })
       .catch(()=>this.setState({ newsErr:true, newsLoading:false }));
