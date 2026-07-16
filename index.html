@@ -2045,8 +2045,8 @@ class Component extends DCLogic {
           };
         });
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
-          note: players.every(p=>p.status==='Cut Information TBD') ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.'),
-          penaltyStr: (players.length && players.every(p=>p.status==='Cut Information TBD')) ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
+          note: players.some(p=>p.status==='Cut Information TBD') ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.'),
+          penaltyStr: (players.length && players.some(p=>p.status==='Cut Information TBD')) ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
       }
     }
 
