@@ -1445,7 +1445,7 @@ class Component extends DCLogic {
   }
   simulate(prev) { const m={}; Object.keys(prev).forEach(n=>{ const p=prev[n]; if (p.c && Math.random()<0.4) { const dd=Math.random()<0.5?-1:1; m[n]={ s:Math.max(-16,Math.min(10,p.s+dd)), c:true }; } else { m[n]={ ...p }; } }); return m; }
   async poll() { try { const players = await this.fetchLeaderboard(); this.setState({ scores:players, lastUpdated:Date.now() }, ()=>{ this.updateLiveCache(); this.capturePayout(); }); } catch(e){} }
-  rel(ms) { if (!ms) return 'just now'; const d=Math.floor((Date.now()-ms)/1000); if (d<5) return 'just now'; if (d<60) return d+'s ago'; return Math.floor(d/60)+'m ago'; }
+  rel(ms) { if (!ms) return 'just now'; const d=Math.floor((Date.now()-ms)/1000); if (d<5) return 'just now'; if (d<60) return d+'s ago'; if (d<3600) return Math.floor(d/60)+'m ago'; const h=Math.floor(d/3600); if (h<48) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
 
   componentDidMount() {
     // Always default the displayed event to The Masters on load; switching during a session still works.
