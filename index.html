@@ -680,6 +680,36 @@ body{margin:0; background:#0a0a0a;}
         </div>
       </sc-if>
 
+      <!-- ================= NEWS ================= -->
+      <sc-if value="{{isNews}}" hint-placeholder-val="{{false}}">
+        <div style="animation:mtUp .35s ease both; background:#FBFBFD; --bg:#FBFBFD; --ink:#15294D; --mut:#6E7892; --fnt:#AEB6C6; --line:#E4E7EF; --card:#FFFFFF; --pan:#15294D; --pin:#FFFFFF; --psub:#9FB0CC; --acc:#C8102E; --aci:#FFFFFF; min-height:100%;">
+          <div style="padding:6px 22px 0;">
+            <div style="font-family:var(--fd); font-size:30px; color:var(--ink); line-height:1;">News</div>
+            <div style="font-family:var(--fb); font-weight:600; font-size:11px; letter-spacing:.1em; color:var(--mut); margin-top:6px;">{{newsEventName}} · LATEST HEADLINES</div>
+          </div>
+          <sc-if value="{{newsLoading}}" hint-placeholder-val="{{false}}">
+            <div style="margin:16px 22px 0; padding:30px 22px; text-align:center; font-family:var(--fb); font-weight:600; font-size:13px; color:var(--mut);">Loading headlines…</div>
+          </sc-if>
+          <sc-if value="{{newsErr}}" hint-placeholder-val="{{false}}">
+            <div style="margin:16px 22px 0; padding:26px 22px; background:var(--pan); border-radius:var(--rad); text-align:center;">
+              <div style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.2em; color:var(--psub);">NEWS UNAVAILABLE</div>
+              <div style="font-family:var(--fb); font-weight:500; font-size:13px; color:var(--psub); margin-top:10px; line-height:1.5;">Couldn't load headlines right now — check back later.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{newsEmpty}}" hint-placeholder-val="{{false}}">
+            <div style="margin:16px 22px 0; padding:26px 22px; background:var(--pan); border-radius:var(--rad); text-align:center; font-family:var(--fb); font-weight:600; font-size:13px; color:var(--psub);">No headlines found yet.</div>
+          </sc-if>
+          <div style="padding:14px 22px 0;">
+            <sc-for list="{{newsRows}}" as="n" hint-placeholder-count="5">
+              <div onClick="{{n.open}}" style="padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer;">
+                <div style="font-family:var(--fb); font-weight:700; font-size:14px; color:var(--ink); line-height:1.35;">{{n.title}}</div>
+                <div style="font-family:var(--fb); font-weight:600; font-size:11px; color:var(--mut); margin-top:5px;">{{n.src}} · {{n.when}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
       <!-- ================= RECORDS ================= -->
       <sc-if value="{{isRecords}}" hint-placeholder-val="{{false}}">
         <div style="animation:mtUp .35s ease both; background:#FBFBFD; --bg:#FBFBFD; --ink:#15294D; --mut:#6E7892; --fnt:#AEB6C6; --line:#E4E7EF; --card:#FFFFFF; --pan:#15294D; --pin:#FFFFFF; --psub:#9FB0CC; --acc:#C8102E; --aci:#FFFFFF; --pnum:#FFFFFF; --up:#2E6E4E; --dn:#C8102E; --mci:#C8102E; --live:#C8102E; --livei:#FFFFFF;">
@@ -745,11 +775,12 @@ body{margin:0; background:#0a0a0a;}
 
     <!-- ================= BOTTOM NAV ================= -->
     <div style="position:absolute; bottom:0; left:0; right:0; height:74px; background:{{navBg}}; border-top:1px solid {{navBorder}}; display:flex; padding:8px 8px 18px;">
-      <div onClick="{{goEvent}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><span style="width:17px; height:17px; border-radius:8px; background:{{navEvent}};"></span><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navEvent}};">Event</span></div>
-      <div onClick="{{goDraft}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><span style="width:17px; height:17px; border-radius:4px; background:{{navDraft}}; transform:rotate(45deg);"></span><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navDraft}};">Draft</span></div>
-      <div onClick="{{goHome}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><span style="width:17px; height:17px; border-radius:4px; background:{{navHome}};"></span><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navHome}};">Home</span></div>
-      <div onClick="{{goSeason}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><span style="width:0; height:0; border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:16px solid {{navSeason}};"></span><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navSeason}};">Standings</span></div>
-      <div onClick="{{goRecords}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><span style="width:17px; height:17px; border-radius:4px; border:3px solid {{navRecords}}; box-sizing:border-box;"></span><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navRecords}};">Records</span></div>
+      <div onClick="{{goEvent}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><svg width="19" height="19" viewBox="0 0 20 20" fill="{{navEvent}}"><path d="M5 1a1 1 0 0 1 1 1v1h8V2a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h1V2a1 1 0 0 1 1-1Zm12 7H3v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5V8Zm-3 2h2v2h-2v-2Zm-4 0h2v2H9v-2Zm-4 0h2v2H5v-2Z"/></svg><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navEvent}};">Event</span></div>
+      <div onClick="{{goDraft}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><svg width="17" height="19" viewBox="0 0 18 20" fill="{{navDraft}}"><path d="M4 0a1.5 1.5 0 0 0-1.5 1.5V3H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h.5v8.2c0 .994.806 1.8 1.8 1.8h5.4c.994 0 1.8-.806 1.8-1.8V10H12a1 1 0 0 0 1-1V5.5h1.5V8a1 1 0 1 0 2 0V4a1 1 0 0 0-1-1H13a1.5 1.5 0 0 0-1.5-1.5H10V1.5A1.5 1.5 0 0 0 8.5 0H4Zm.5 3V2h3.5v1h-3.5ZM2 5h9.5v3H2V5Z"/></svg><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navDraft}};">Draft</span></div>
+      <div onClick="{{goHome}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><svg width="18" height="18" viewBox="0 0 20 20" fill="{{navHome}}"><path d="M10 1.2 1 8.6V19h6v-6.5h6V19h6V8.6L10 1.2Z"/></svg><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navHome}};">Home</span></div>
+      <div onClick="{{goSeason}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><svg width="19" height="19" viewBox="0 0 20 20" fill="{{navSeason}}"><path d="m10 0 1.3 2.9 3.1.4-2.3 2.2.6 3.1L10 7.1 7.3 8.6l.6-3.1L5.6 3.3l3.1-.4L10 0Z"/><rect x="1" y="12" width="4.5" height="8" rx=".7"/><rect x="7.75" y="9" width="4.5" height="11" rx=".7"/><rect x="14.5" y="13.5" width="4.5" height="6.5" rx=".7"/></svg><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navSeason}};">Standings</span></div>
+      <div onClick="{{goRecords}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><svg width="19" height="19" viewBox="0 0 20 20" fill="{{navRecords}}"><circle cx="10" cy="10" r="9.5"/><circle cx="10" cy="10" r="3.6" fill="var(--bg)"/><circle cx="10" cy="10" r="1.3"/></svg><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navRecords}};">Records</span></div>
+      <div onClick="{{goNews}}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;"><svg width="19" height="19" viewBox="0 0 20 20" fill="{{navNews}}"><path d="M3 2h11a1.5 1.5 0 0 1 1.5 1.5v11.7A2.8 2.8 0 0 1 12.7 18H4.8A2.8 2.8 0 0 1 2 15.2V3.5A1.5 1.5 0 0 1 3 2Z" opacity=".28"/><path d="M4.5 3.5h9v2h-9v-2Zm0 3.5h5v1.5h-9V17a2.8 0 0 0 2.8 0V7Z" fill="none"/><path d="M4 3a1 1 0 0 1 1-1h9.5A1.5 1.5 0 0 1 16 3.5v11.8A2.7 2.7 0 0 1 13.3 18H6.3A2.3 2.3 0 0 1 4 15.7V3Z"/><rect x="6" y="5" width="8" height="2" fill="var(--bg)"/><rect x="6" y="8.5" width="4.3" height="4.3" fill="var(--bg)"/><rect x="11.2" y="8.5" width="2.8" height="1" fill="var(--bg)"/><rect x="11.2" y="10.3" width="2.8" height="1" fill="var(--bg)"/><rect x="6" y="14" width="8" height="1" fill="var(--bg)"/></svg><span style="font-family:var(--fb); font-weight:600; font-size:10px; color:{{navNews}};">News</span></div>
     </div>
 
     <!-- ================= DETAIL OVERLAY ================= -->
@@ -1678,6 +1709,24 @@ class Component extends DCLogic {
   updateHistory(i,field,val){ this.setState(st=>{ const h=(st.historyDraft||[]).map(x=>({...x})); if(h[i]) h[i][field]=val; return {historyDraft:h}; }); }
   addHistory(){ this.setState(st=>({ historyDraft:(st.historyDraft||[]).concat([{yr:'',champ:'',cup:'',cuts:''}]), settingsTab:'history' })); }
   removeHistory(i){ this.setState(st=>({ historyDraft:(st.historyDraft||[]).filter((x,j)=>j!==i) })); }
+  // News tab — GNews.io free tier (100 req/day). Set your key below; safe as a client key since
+  // GNews's free tier is rate-limited per-key anyway, same tradeoff as the Odds API tab.
+  NEWS_API_KEY = 'aa077ffb2f24c2d10dbfd0f36103981d';
+  loadNews(){
+    if (!this.NEWS_API_KEY) { this.setState({ newsErr:true, newsLoading:false }); return; }
+    const q = encodeURIComponent(this.currentEventNm());
+    this.setState({ newsLoading:true, newsErr:false });
+    fetch(`https://gnews.io/api/v4/search?q=${q}&lang=en&max=10&apikey=${this.NEWS_API_KEY}`)
+      .then(r=>r.json())
+      .then(d=>{
+        const items = (d.articles||[]).map(a=>({
+          title:a.title, src:(a.source&&a.source.name)||'', when:this.rel(new Date(a.publishedAt).getTime()), url:a.url,
+          open:()=>{ try{ window.open(a.url,'_blank'); }catch(e){} }
+        }));
+        this.setState({ newsItems:items, newsLoading:false });
+      })
+      .catch(()=>this.setState({ newsErr:true, newsLoading:false }));
+  }
   eventCol(theme){ return ({ masters:0, pga:1, usopen:2, open:3 })[theme]; }
   currentEventNm(){ return ({ masters:'The Masters', open:'The Open', pga:'PGA Championship', usopen:'U.S. Open' })[this.state.theme] || 'This event'; }
   // Auto-finalize a major: stamp each participant's finish (1-8) + missed cuts into the Season from live standings.
@@ -2122,6 +2171,8 @@ class Component extends DCLogic {
       showSettleCard:!!S.showSettleCard, closeSettleCard:()=>this.setState({showSettleCard:false}), copySettlement:()=>this.copySettlement(), nativeShare:()=>this.nativeShare(),
       settleCardDate:(new Date()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), stopProp:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
       isRecords:S.screen==='records', goRecords:()=>this.setState({screen:'records', draftPreview:false}), navRecords:nav(S.screen==='records'),
+      isNews:S.screen==='news', goNews:()=>{ this.setState({screen:'news', draftPreview:false}); this.loadNews(); }, navNews:nav(S.screen==='news'),
+      newsRows:(S.newsItems||[]), newsLoading:!!S.newsLoading, newsEmpty:(!S.newsLoading && !S.newsErr && !(S.newsItems||[]).length), newsErr:!!S.newsErr, newsEventName:liveEventName2,
       openDraftPreview:()=>this.setState({screen:'draft', draftPreview:true, showSettings:false}),
       pastSeasons:PAST, allTime, recordTop,
       winnerPotStr:(pv?pv.winnerPotStr:winnerPotStr), winnerTaker:(pv?pv.winnerTaker:winOwner), winnerGolfer:(pv?pv.winnerGolfer:winGolfer), winnerScoreStr:(pv?pv.winnerScoreStr:this.par(winScore)), winnerTaken:(pv?pv.winnerTaken:winnerTaken), noWinnerYet:(pv?pv.noWinnerYet:!winnerTaken),
