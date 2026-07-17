@@ -2030,7 +2030,7 @@ class Component extends DCLogic {
     const payoutRecapAny = evOrder.some(k=>this.payoutStore[k]);
     // ---- Pots tab: clickable per-event accordion (colored to match each major) ----
     const EV_BAR = { masters:{bg:'#1E6B3F',fg:'#F4D35E'}, pga:{bg:'#0E4C92',fg:'#EAF2FB'}, usopen:{bg:'#C8102E',fg:'#D9D9D9'}, open:{bg:'#12324B',fg:'#F4D35E'} };
-    const openKey = (S.potsOpenKey!=null) ? S.potsOpenKey : (evOrder.slice().reverse().find(k=>(PAYDATA[k]||[]).length>0) || null);
+    const openKey = (S.potsOpenKey!=null) ? S.potsOpenKey : '';
     const potsAccordion = evOrder.map(k=>{
       const rows = PAYDATA[k]||[];
       return { key:k, name:EVN[k], bar:EV_BAR[k].bg, fg:EV_BAR[k].fg, none:rows.length===0, has:rows.length>0, rows,
