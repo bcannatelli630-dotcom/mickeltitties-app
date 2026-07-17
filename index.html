@@ -553,42 +553,33 @@ body{margin:0; background:#0a0a0a;}
           <!-- pots -->
           <sc-if value="{{isPots}}" hint-placeholder-val="{{false}}">
             <div style="padding:16px 22px 0;">
-              <div style="padding:16px 18px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); margin-bottom:14px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div><div style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.14em; color:var(--mut);">OUTRIGHT WINNER POT</div><div style="font-family:var(--fd); font-size:16px; color:var(--ink); margin-top:2px;">{{potsEventName}}</div></div>
-                  <div style="font-family:var(--fn); font-weight:700; font-size:30px; color:var(--acc);">{{winnerPotStr}}</div>
-                </div>
-                <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
-                  <sc-if value="{{winnerTaken}}" hint-placeholder-val="{{true}}">
-                    <div style="font-family:var(--fd); font-size:22px; color:var(--ink); line-height:1;">{{winnerTaker}}</div>
-                    <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-top:4px;">drafted {{winnerGolfer}} · winner at {{winnerScoreStr}}</div>
-                  </sc-if>
-                  <sc-if value="{{noWinnerYet}}" hint-placeholder-val="{{false}}">
-                    <div style="font-family:var(--fd); font-size:22px; color:var(--mut); line-height:1;">No leader yet</div>
-                  </sc-if>
-                </div>
-                <div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--fnt); margin-top:12px; line-height:1.5;">{{winnerNote}}</div>
-              </div>
-              <div style="padding:16px 18px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); margin-bottom:14px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div><div style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.14em; color:var(--mut);">WINNING-SCORE POOL</div><div style="font-family:var(--fd); font-size:16px; color:var(--ink); margin-top:2px;">{{potsEventName}}</div></div>
-                  <div style="font-family:var(--fn); font-weight:700; font-size:30px; color:var(--acc);">{{spPotStr}}</div>
-                </div>
-                <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline;">
-                  <div style="font-family:var(--fb); font-weight:600; font-size:12px; color:var(--mut);">Actual winning score</div>
-                  <div style="font-family:var(--fn); font-weight:700; font-size:22px; color:var(--ink);">{{spWinStr}}</div>
-                </div>
-                <sc-if value="{{spHas}}" hint-placeholder-val="{{true}}">
-                  <div style="display:flex; flex-direction:column; gap:6px; margin-top:12px;">
-                    <sc-for list="{{spRows}}" as="g" hint-placeholder-count="4">
-                      <sc-if value="{{g.win}}" hint-placeholder-val="{{false}}"><div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--acc); color:var(--aci); border-radius:var(--rad);"><span style="font-family:var(--fb); font-weight:700; font-size:13px;">{{g.name}} ✓</span><span style="font-family:var(--fn); font-weight:700; font-size:14px;">{{g.guessStr}}</span></div></sc-if>
-                      <sc-if value="{{g.idle}}" hint-placeholder-val="{{true}}"><div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid var(--line);"><span style="font-family:var(--fb); font-weight:600; font-size:13px; color:var(--ink);">{{g.name}}</span><span style="font-family:var(--fn); font-weight:700; font-size:14px; color:var(--mut);">{{g.guessStr}}</span></div></sc-if>
-                    </sc-for>
+              <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.06em; color:var(--mut); margin-bottom:10px;">OUTRIGHT WINNER · WINNING SCORE — BY EVENT</div>
+              <sc-for list="{{potsAccordion}}" as="ev" hint-placeholder-count="4">
+                <div style="margin-bottom:10px; border-radius:var(--rad); overflow:hidden; border:1px solid var(--line);">
+                  <div onClick="{{ev.toggle}}" style="padding:13px 14px; background:{{ev.bar}}; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                    <span style="font-family:var(--fd); font-size:18px; color:{{ev.fg}};">{{ev.name}}</span>
+                    <span style="font-family:var(--fb); font-weight:700; font-size:12px; color:{{ev.fg}}; opacity:.85;">{{ev.isOpen ? '▲' : '▼'}}</span>
                   </div>
-                </sc-if>
-                <sc-if value="{{spNoEntrants}}" hint-placeholder-val="{{false}}"><div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-top:10px;">No guesses in yet — add them in Settings → Pool.</div></sc-if>
-                <div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--fnt); margin-top:12px; line-height:1.5;">{{spNote}}</div>
-              </div>
+                  <sc-if value="{{ev.isOpen}}" hint-placeholder-val="{{false}}">
+                    <sc-if value="{{ev.has}}" hint-placeholder-val="{{true}}">
+                      <sc-for list="{{ev.rows}}" as="r" hint-placeholder-count="3">
+                        <div style="padding:12px 14px; background:var(--card); border-bottom:1px solid var(--line);">
+                          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:10px;">
+                            <span style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.08em; color:var(--mut);">{{r.label}}</span>
+                            <span style="font-family:var(--fn); font-weight:700; font-size:15px; color:var(--acc);">{{r.amt}}</span>
+                          </div>
+                          <div style="font-family:var(--fb); font-weight:500; font-size:13px; color:var(--ink); margin-top:3px;">{{r.who}}</div>
+                        </div>
+                      </sc-for>
+                    </sc-if>
+                    <sc-if value="{{ev.none}}" hint-placeholder-val="{{false}}">
+                      <div style="padding:14px; background:var(--card); font-family:var(--fb); font-weight:500; font-size:12px; color:var(--fnt);">Not played yet.</div>
+                    </sc-if>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:8px 22px 0;">
               <div style="padding:20px 18px; background:var(--pan); border-radius:var(--rad); text-align:center;">
                 <div style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.18em; color:var(--psub);">MISSED-CUT KITTY</div>
                 <div style="font-family:var(--fn); font-weight:700; font-size:58px; color:var(--pnum); line-height:.85; margin-top:6px;">{{potStr}}</div>
@@ -1964,7 +1955,7 @@ class Component extends DCLogic {
     const minMc = potRows.length ? potRows[0].mc : 0;
     const kittyLeaders = potRows.filter(r=>r.mc===minMc);
     const potLeaderName = kittyLeaders.length>1 ? (this.tieWord(kittyLeaders.length)+' tie') : (potRows[0]?potRows[0].name.split(' ')[0]:'\u2014');
-    const potLeaderLine = kittyLeaders.length>1 ? (this.tieWord(kittyLeaders.length)+' tie for the fewest missed cuts') : (potLeaderName+' leads with the fewest missed cuts');
+    const potLeaderLine = kittyLeaders.length>1 ? (this.tieWord(kittyLeaders.length)+' tie for the fewest missed cuts') : (S.theme==='open' ? (potLeaderName+' takes it with the fewest missed cuts') : (potLeaderName+' leads with the fewest missed cuts'));
 
     // ---- outright winner pot ----
     let winGolfer = null, winScore = Infinity, winOwner = null;
@@ -2036,6 +2027,14 @@ class Component extends DCLogic {
       return { name:EVN[k], none:false, has:true, winLine, winAmt, poolLine, poolAmt };
     });
     const payoutRecapAny = evOrder.some(k=>this.payoutStore[k]);
+    // ---- Pots tab: clickable per-event accordion (colored to match each major) ----
+    const EV_BAR = { masters:{bg:'#1E6B3F',fg:'#F4D35E'}, pga:{bg:'#0E4C92',fg:'#EAF2FB'}, usopen:{bg:'#C8102E',fg:'#D9D9D9'}, open:{bg:'#12324B',fg:'#F4D35E'} };
+    const openKey = (S.potsOpenKey!=null) ? S.potsOpenKey : (evOrder.slice().reverse().find(k=>(PAYDATA[k]||[]).length>0) || null);
+    const potsAccordion = evOrder.map(k=>{
+      const rows = PAYDATA[k]||[];
+      return { key:k, name:EVN[k], bar:EV_BAR[k].bg, fg:EV_BAR[k].fg, none:rows.length===0, has:rows.length>0, rows,
+        isOpen:openKey===k, toggle:()=>this.setState({potsOpenKey: openKey===k ? '' : k}) };
+    });
 
     // ---- records ----
     const PAST = !this.DEMO_MODE ? (this.historyStore||[]).map(h=>({ yr:h.yr, champ:h.champ, cup:h.cup, cuts:h.cuts })) : [
@@ -2192,7 +2191,7 @@ class Component extends DCLogic {
         {label:'Pots', active:S.seasonTab==='pots', idle:S.seasonTab!=='pots', onClick:()=>this.setState({seasonTab:'pots'})},
         {label:'The Money', active:S.seasonTab==='settle', idle:S.seasonTab!=='settle', onClick:()=>this.setState({seasonTab:'settle'})},
       ],
-      potRows, potStr, potLeaderName, potLeaderLine, mcDollarStr:String(this.scoring.mcDollar),
+      potRows, potStr, potLeaderName, potLeaderLine, mcDollarStr:String(this.scoring.mcDollar), potsAccordion,
       isSettle:S.seasonTab==='settle'&&seasonStarted, settleLines:sLines, transfers:sTransfers, settleHasData:sHasData, settleEmpty:!sHasData, shareSettlement:()=>this.shareSettlement(), settleEventName:sEventName,
       payoutRecap, payoutRecapAny, payoutRecapEmpty:false,
       showSettleCard:!!S.showSettleCard, closeSettleCard:()=>this.setState({showSettleCard:false}), copySettlement:()=>this.copySettlement(), nativeShare:()=>this.nativeShare(),
