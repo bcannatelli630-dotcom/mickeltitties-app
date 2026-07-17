@@ -1557,6 +1557,17 @@ class Component extends DCLogic {
 
   _knownThu(){ return { 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } }; }
   // Is this major live right now? (first group tees off Thursday AM → final standings ~Sunday night)
+  eventLive(themeKey){
+    // Which tournament round should be underway right now, purely from the calendar (Thu=1..Sun=4).
+    // Backup for the live feed's per-player round field, which isn't always populated.
+    const tbls=this._knownThu(); const now=new Date();
+    for(const y of [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]){
+      const tbl=tbls[y]; if(!tbl||!tbl[themeKey]) continue;
+      const [m,d]=tbl[themeKey]; const thu=new Date(y,m,d,5,0,0); const sun=new Date(y,m,d+3,23,59,0);
+      if(now>=thu && now<=sun) return true;
+    }
+    return false;
+  }
   // Which tournament round should be underway right now, purely from the calendar (Thu=1..Sun=4).
   // Backup for the live feed's per-player round field, which isn't always populated.
   calendarRound(themeKey){
@@ -1570,14 +1581,11 @@ class Component extends DCLogic {
     }
     return 0;
   }
-  eventLive(themeKey){
-    const tbls=this._knownThu(); const now=new Date();
-    for(const y of [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]){
-      const tbl=tbls[y]; if(!tbl||!tbl[themeKey]) continue;
-      const [m,d]=tbl[themeKey]; const thu=new Date(y,m,d,5,0,0); const sun=new Date(y,m,d+3,23,59,0);
-      if(now>=thu && now<=sun) return true;
-    }
-    return false;
+  // Human round/day label for the Event header, derived from the same calendar math (not hardcoded).
+  roundLabel(themeKey, long){
+    const r = Math.max(1, Math.min(4, this.calendarRound(themeKey) || 1));
+    const days = ['Thursday','Friday','Saturday','Sunday'];
+    return long ? ('ROUND '+r+' \u00b7 '+days[r-1].toUpperCase()) : ('R'+r+' \u00b7 '+days[r-1]);
   }
   // Has this major's Thursday tee-off already passed (started or finished, no Sunday cutoff)? Used to gate DISPLAY of results — unlike eventLive(), a completed event still returns true here.
   eventStarted(themeKey){
@@ -2177,7 +2185,7 @@ class Component extends DCLogic {
 
     return {
       t, liveEventName, liveEventName2, seasonTag, eventDates, seasonTitle:(YEAR + ' Season'), seasonHeadSub:(YEAR + ' SEASON · OVERALL TO DATE'), clockTime:new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles'}),
-      hasNextEvent:!!nextEv, nextEventName:(nextEv?nextEv.name:''), nextEventLabel:(nextEv?nextEv.label:''), eventRound:'R4 · Sunday', eventRoundLong:'ROUND 4 · SUNDAY',
+      hasNextEvent:!!nextEv, nextEventName:(nextEv?nextEv.name:''), nextEventLabel:(nextEv?nextEv.label:''), eventRound:this.roundLabel(S.theme,false), eventRoundLong:this.roundLabel(S.theme,true),
       isHome:S.screen==='home', isEvent:S.screen==='event'&&S.eventChosen, isEventPicker:S.screen==='event'&&!S.eventChosen, isDraft:S.screen==='draft', isSeason:S.screen==='season',
       goHome:()=>this.setState({screen:'home', draftPreview:false}), goEvent:()=>this.setState({screen:'event', eventChosen:false, draftPreview:false}),
       backToEventPicker:()=>this.setState({eventChosen:false}),
