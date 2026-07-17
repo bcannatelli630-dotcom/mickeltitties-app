@@ -170,7 +170,7 @@ body{margin:0; background:#0a0a0a;}
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; border-bottom:1px solid var(--line); padding-bottom:10px;">
               <div style="padding-bottom:10px; margin-bottom:-11px; border-bottom:2px solid var(--acc); font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">This Event</div>
               <sc-if value="{{showProjCut}}" hint-placeholder-val="{{false}}">
-                <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">Projected Cut</span><span style="font-family:var(--fn); font-weight:700; font-size:22px; color:var(--acc);">{{projCutStr}}</span></div>
+                <div style="display:flex; align-items:baseline; gap:8px;"><span style="font-family:var(--fb); font-weight:700; font-size:13px; color:var(--ink);">{{cutLineLabel}}</span><span style="font-family:var(--fn); font-weight:700; font-size:22px; color:var(--acc);">{{projCutStr}}</span></div>
               </sc-if>
             </div>
           </div>
@@ -2107,11 +2107,14 @@ class Component extends DCLogic {
     const fieldHasData = fEntries.length>0;
     // Projected cut line: approximate using each major's usual cut size (low N + ties) against today's leaderboard. Only meaningful before the real cut (rounds 1-2); shown as a rough estimate.
     const CUT_SIZE = { masters:50, pga:70, usopen:60, open:70 }[S.theme] || 65;
-    const cutDecidedNow = this.DEMO_MODE || (this._tourRound||0) >= 3;
+    const cutDecidedNow = this.DEMO_MODE || (this._tourRound||0) >= 3 || this.calendarRound(S.theme) >= 3;
     const madeSorted = [...fMade].sort((a,b)=>a.s-b.s);
     const projCutScore = madeSorted.length>CUT_SIZE ? madeSorted[CUT_SIZE-1].s : null;
+    const realCutScore = madeSorted.length ? madeSorted[madeSorted.length-1].s : null;
     const showProjCut = fieldHasData && !cutDecidedNow && projCutScore!=null;
-    const projCutStr = showProjCut ? this.par(projCutScore) : '';
+    const showCutLine = fieldHasData && cutDecidedNow && realCutScore!=null;
+    const projCutStr = showProjCut ? this.par(projCutScore) : (showCutLine ? this.par(realCutScore) : '');
+    const cutLineLabel = cutDecidedNow ? 'Cut Line' : 'Projected Cut';
     // pick editor (reassign / replace) for post-draft fixes
     const editIdx = S.rosterEdit;
     const editPickObj = (editIdx!=null && drafted[editIdx]) ? drafted[editIdx] : null;
@@ -2211,7 +2214,7 @@ class Component extends DCLogic {
       eventViewPool:S.eventView!=='field', eventViewField:S.eventView==='field',
       showPool:()=>this.setState({eventView:'pool'}), showField:()=>this.setState({eventView:'field'}),
       poolTabActive:S.eventView!=='field', fieldTabActive:S.eventView==='field',
-      fullBoard, fieldHasData, fieldEmpty:!fieldHasData, showProjCut, projCutStr,
+      fullBoard, fieldHasData, fieldEmpty:!fieldHasData, showProjCut:(showProjCut||showCutLine), projCutStr, cutLineLabel,
       shuffleOrder:()=>this.shuffleOrder(), canShuffle:noSessionPicks, cannotShuffle:!noSessionPicks,
       openOrderPicker:()=>this.openOrderPicker(), showOrderPicker:!!S.showOrderPicker, closeOrderPicker:()=>this.setState({showOrderPicker:false, orderPicks:[]}), undoOrderPick:()=>this.undoOrderPick(),
       orderPickChips:(S.orderPicks||[]).map((id,i)=>({ n:i+1, name:this.PARTS.find(p=>p.id===id).name })),
