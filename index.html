@@ -2138,15 +2138,15 @@ class Component extends DCLogic {
           const inProgress = started && (!roundDone || !cutDecided);
           return {
             n:p.n, effStr:this.par(p.eff),
-            status: !started ? 'Cut Information TBD' : (inProgress ? (cutDecided ? ('In progress · thru '+th) : 'Cut not yet determined') : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut')),
-            tag: !started ? 'TBD' : (inProgress ? (cutDecided ? ('THRU '+th) : 'TBD') : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'))),
+            status: !started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut')),
+            tag: !started ? 'TBD' : (inProgress ? ('THRU '+th) : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'))),
             counted: p.counted, isMC,
             dot: p.counted ? 'var(--up)' : 'var(--fnt)',
             nameCol: p.counted ? 'var(--ink)' : 'var(--mut)',
             tagCol: (!started || inProgress) ? 'var(--acc)' : (isMC ? 'var(--mci)' : (p.counted ? 'var(--up)' : 'var(--fnt)')),
           };
         });
-        const anyPending = players.some(p=>p.status==='Cut Information TBD' || p.status.indexOf('In progress')===0 || p.status==='Cut not yet determined');
+        const anyPending = players.some(p=>p.status==='Cut Information TBD' || p.status.indexOf('In progress')===0);
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
           note: anyPending ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.'),
           penaltyStr: anyPending ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
