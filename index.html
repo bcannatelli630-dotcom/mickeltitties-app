@@ -1956,7 +1956,7 @@ class Component extends DCLogic {
     const kittyLeaders = potRows.filter(r=>r.mc===minMc);
     const potLeaderName = kittyLeaders.length>1 ? (this.tieWord(kittyLeaders.length)+' tie') : (potRows[0]?potRows[0].name.split(' ')[0]:'\u2014');
     const openRecorded = !this.DEMO_MODE && this.PARTS.every(p=>{ const s=this.seasonStore[p.id]; return s && s.ev && s.ev[3]>0; });
-    const potLeaderLine = kittyLeaders.length>1 ? (this.tieWord(kittyLeaders.length)+' tie for the fewest missed cuts') : ((openRecorded||S.theme==='open') ? (potLeaderName+' takes it with the fewest missed cuts') : (potLeaderName+' leads with the fewest missed cuts'));
+    const potLeaderLine = kittyLeaders.length>1 ? (this.tieWord(kittyLeaders.length)+' tie for the fewest missed cuts') : (openRecorded ? (potLeaderName+' takes it with the fewest missed cuts') : (potLeaderName+' leads with the fewest missed cuts'));
 
     // ---- outright winner pot ----
     let winGolfer = null, winScore = Infinity, winOwner = null;
