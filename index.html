@@ -955,10 +955,12 @@ body{margin:0; background:#0a0a0a;}
             <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-top:14px; line-height:1.5;">The eight names for the season. They flow through every screen; initials update automatically.</div>
             <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
               <sc-for list="{{nameFields}}" as="f" hint-placeholder-count="8">
-                <div style="display:flex; align-items:center; gap:12px;">
-                  <span style="width:34px; height:34px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:999px; background:var(--pan); color:var(--pin); font-family:var(--fn); font-weight:700; font-size:13px;">{{f.ini}}</span>
-                  <input value="{{f.value}}" onInput="{{f.onInput}}" placeholder="{{f.placeholder}}" style="flex:1; min-width:0; padding:12px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
-                  <input value="{{f.venmoValue}}" onInput="{{f.onVenmoInput}}" placeholder="Venmo @" style="width:110px; flex:none; padding:12px 10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:13px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                <div style="display:flex; flex-direction:column; gap:8px; padding:10px; border:1px solid var(--line); border-radius:var(--rad);">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="width:34px; height:34px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:999px; background:var(--pan); color:var(--pin); font-family:var(--fn); font-weight:700; font-size:13px;">{{f.ini}}</span>
+                    <input value="{{f.value}}" onInput="{{f.onInput}}" placeholder="{{f.placeholder}}" style="flex:1; min-width:0; padding:12px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                  </div>
+                  <input value="{{f.venmoValue}}" onInput="{{f.onVenmoInput}}" placeholder="Venmo username (no @)" style="margin-left:46px; padding:11px 12px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:13px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
                 </div>
               </sc-for>
             </div>
