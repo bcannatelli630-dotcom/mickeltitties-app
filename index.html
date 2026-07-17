@@ -1731,7 +1731,7 @@ class Component extends DCLogic {
   // News tab — proxied through your feed backend (api/news.js) so the GNews call runs
   // server-side, avoiding browser CORS issues and keeping the key off phones.
   loadNews(){
-    const cacheKey = 'mtc_news_v3_'+this.state.theme;
+    const cacheKey = 'mtc_news_v4_'+this.state.theme;
     let cached=null; try{ cached=JSON.parse(localStorage.getItem(cacheKey)||'null'); }catch(e){}
     if (cached && (Date.now()-cached.t) < 3600000) { this.setState({ newsItems:cached.items, newsLoading:false, newsErr:false }); return; }
     this.setState({ newsLoading:true, newsErr:false });
@@ -2135,11 +2135,12 @@ class Component extends DCLogic {
           const th = this.golferThru(p.n);
           const roundDone = this.DEMO_MODE || th==='F' || th===18 || th==='18';
           const cutDecided = this.DEMO_MODE || (this._tourRound||0) >= 3 || this.calendarRound(S.theme) >= 3;  // Sat onward — feed's per-player round field is unreliable, back it up with tee-off date math
-          const inProgress = started && (!roundDone || !cutDecided);
+          const inProgress = started && !roundDone;
+          const roundDoneAwaitingCut = started && roundDone && !cutDecided;
           return {
             n:p.n, effStr:this.par(p.eff),
-            status: !started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut')),
-            tag: !started ? 'TBD' : (inProgress ? ('THRU '+th) : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'))),
+            status: !started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (roundDoneAwaitingCut ? 'Round complete · cut TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut'))),
+            tag: !started ? 'TBD' : (inProgress ? ('THRU '+th) : (roundDoneAwaitingCut ? 'TBD' : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED')))),
             counted: p.counted, isMC,
             dot: p.counted ? 'var(--up)' : 'var(--fnt)',
             nameCol: p.counted ? 'var(--ink)' : 'var(--mut)',
