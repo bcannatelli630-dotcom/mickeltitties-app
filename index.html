@@ -1566,6 +1566,19 @@ class Component extends DCLogic {
 
   _knownThu(){ return { 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } }; }
   // Is this major live right now? (first group tees off Thursday AM → final standings ~Sunday night)
+  // Which tournament round should be underway right now, purely from the calendar (Thu=1..Sun=4).
+  // Backup for the live feed's per-player round field, which isn't always populated.
+  calendarRound(themeKey){
+    const tbls=this._knownThu(); const now=new Date();
+    for(const y of [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]){
+      const tbl=tbls[y]; if(!tbl||!tbl[themeKey]) continue;
+      const [m,d]=tbl[themeKey]; const thu=new Date(y,m,d,5,0,0);
+      if(now<thu) continue;
+      const days=Math.floor((now-thu)/86400000);
+      if(days<=3) return Math.min(days+1,4);
+    }
+    return 0;
+  }
   eventLive(themeKey){
     const tbls=this._knownThu(); const now=new Date();
     for(const y of [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]){
@@ -2121,7 +2134,7 @@ class Component extends DCLogic {
           const started = this.DEMO_MODE || p.started;
           const th = this.golferThru(p.n);
           const roundDone = this.DEMO_MODE || th==='F' || th===18 || th==='18';
-          const cutDecided = this.DEMO_MODE || (this._tourRound||0) >= 3;  // cut isn't real until round 3 (Sat) tee times exist
+          const cutDecided = this.DEMO_MODE || (this._tourRound||0) >= 3 || this.calendarRound(S.theme) >= 3;  // Sat onward — feed's per-player round field is unreliable, back it up with tee-off date math
           const inProgress = started && (!roundDone || !cutDecided);
           return {
             n:p.n, effStr:this.par(p.eff),
