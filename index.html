@@ -1461,6 +1461,8 @@ class Component extends DCLogic {
   simulate(prev) { const m={}; Object.keys(prev).forEach(n=>{ const p=prev[n]; if (p.c && Math.random()<0.4) { const dd=Math.random()<0.5?-1:1; m[n]={ s:Math.max(-16,Math.min(10,p.s+dd)), c:true }; } else { m[n]={ ...p }; } }); return m; }
   async poll() {
     try {
+      const activeNow = this.currentlyLiveThemeKey();
+      if (activeNow && activeNow !== this.state.theme) { this.setState({ theme: activeNow }); }
       const players = await this.fetchLeaderboard();
       if (this.USE_LIVE_FEED && Object.keys(players||{}).length === 0 && this.state.scores && Object.keys(this.state.scores).length>0) return; // don't blank out good data on an empty/failed response
       this.setState({ scores:players, lastUpdated:Date.now() }, ()=>{ this.updateLiveCache(); this.capturePayout(); });
@@ -1471,6 +1473,7 @@ class Component extends DCLogic {
   componentDidMount() {
     // Always default the displayed event to The Masters on load; switching during a session still works.
     this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.forceUpdate();
+    { const activeNow=this.currentlyLiveThemeKey(); if (activeNow && activeNow!==this.state.theme) this.setState({ theme: activeNow }); }
     if (this.state.drafted === null){
       if (this.DEMO_MODE){ this.setState({ drafted:this.initialDrafted(), field:this.initialField(), pickIdx:18, draftOrder:[0,1,2,3,4,5,6,7] }); }
       else { const cd=this.draftFor(this.state.theme); this.setState({ drafted:cd.drafted, field:this.initialField(), pickIdx:cd.pickIdx, draftOrder:cd.order }); }
@@ -1478,9 +1481,9 @@ class Component extends DCLogic {
     this._t = setInterval(()=>{ this.setState(st => (st.running && st.clockArmed && st.clock>0) ? { clock: st.clock-1 } : null); }, 1000);
     if (!this.state.scores) this.setState({ scores:this.baseScores(), lastUpdated:Date.now() });
     if (this.USE_LIVE_FEED) this.loadLiveField();
-    if (this.USE_LIVE_FEED && this.eventLive(this.state.theme)) this.poll();  // don't wait up to 5 min for the first load
+    if (this.USE_LIVE_FEED) { const activeNow=this.currentlyLiveThemeKey(); if (activeNow) this.poll(); else if (this.eventLive(this.state.theme)) this.poll(); }  // don't wait up to 5 min for the first load
     // Poll only during active tournament hours (Thu–Sun of the selected major) and only while the tab is visible — conserves API quota.
-    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.eventLive(this.state.theme)) this.poll(); }, 300000);
+    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && (this.eventLive(this.state.theme) || this.currentlyLiveThemeKey())) this.poll(); }, 300000);
     this._lastPick = this.state.pickIdx;
     setTimeout(()=>this.centerRoundOrder(), 200);
     this.pullState();
@@ -1582,6 +1585,18 @@ class Component extends DCLogic {
 
   _knownThu(){ return { 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } }; }
   // Is this major live right now? (first group tees off Thursday AM → final standings ~Sunday night)
+  currentlyLiveThemeKey(){
+    const tbls=this._knownThu(); const now=new Date();
+    for(const y of [now.getFullYear(), now.getFullYear()+1]){
+      const tbl=tbls[y]; if(!tbl) continue;
+      for(const k of ['masters','pga','usopen','open']){
+        if(!tbl[k]) continue;
+        const [m,d]=tbl[k]; const thu=new Date(y,m,d,5,0,0); const sun=new Date(y,m,d+3,23,59,0);
+        if(now>=thu && now<=sun) return k;
+      }
+    }
+    return null;
+  }
   eventLive(themeKey){
     // Which tournament round should be underway right now, purely from the calendar (Thu=1..Sun=4).
     // Backup for the live feed's per-player round field, which isn't always populated.
