@@ -510,9 +510,9 @@ body{margin:0; background:#0a0a0a;}
                 </div>
                 <div style="display:flex; gap:6px; margin-top:14px;">
                   <sc-for list="{{champ.evs}}" as="e" hint-placeholder-count="4">
-                    <div style="flex:1; text-align:center; padding:7px 0; border-radius:8px; background:{{e.c}};">
-                      <div style="font-family:var(--fb); font-weight:700; font-size:9px; letter-spacing:.06em; color:rgba(255,255,255,.7);">{{e.k}}</div>
-                      <div style="font-family:var(--fn); font-weight:700; font-size:15px; color:#fff; margin-top:1px;">{{e.v}}</div>
+                    <div style="width:32px; height:32px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px; background:{{e.c}};">
+                      <div style="font-family:var(--fb); font-weight:700; font-size:8px; letter-spacing:.04em; color:rgba(255,255,255,.7); line-height:1;">{{e.k}}</div>
+                      <div style="font-family:var(--fn); font-weight:700; font-size:13px; color:#fff; line-height:1.15;">{{e.v}}</div>
                     </div>
                   </sc-for>
                 </div>
