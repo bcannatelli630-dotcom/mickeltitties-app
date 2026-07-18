@@ -1063,6 +1063,14 @@ body{margin:0; background:#0a0a0a;}
               <sc-if value="{{clockFeatureOn}}" hint-placeholder-val="{{false}}"><button onClick="{{disableClockFeature}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">On</button></sc-if>
               <sc-if value="{{clockFeatureOff}}" hint-placeholder-val="{{true}}"><button onClick="{{enableClockFeature}}" style="border:1px solid var(--line); background:transparent; color:var(--mut); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">Off</button></sc-if>
             </div>
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line); display:flex; align-items:center; gap:12px;">
+              <div style="flex:1;">
+                <div style="font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink);">Live score polling (admin)</div>
+                <div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--mut); margin-top:2px; line-height:1.4;">Turn off to fully suspend API calls (e.g. conserve quota). "Refresh now" is currently disabled separately.</div>
+              </div>
+              <sc-if value="{{pollingOn}}" hint-placeholder-val="{{true}}"><button onClick="{{disablePolling}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">On</button></sc-if>
+              <sc-if value="{{pollingOff}}" hint-placeholder-val="{{false}}"><button onClick="{{enablePolling}}" style="border:1px solid var(--line); background:transparent; color:var(--mut); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">Off</button></sc-if>
+            </div>
           </sc-if>
 
           <sc-if value="{{isPoolTab}}" hint-placeholder-val="{{false}}">
@@ -1482,9 +1490,9 @@ class Component extends DCLogic {
     this._t = setInterval(()=>{ this.setState(st => (st.running && st.clockArmed && st.clock>0) ? { clock: st.clock-1 } : null); }, 1000);
     if (!this.state.scores) this.setState({ scores:this.baseScores(), lastUpdated:Date.now() });
     if (this.USE_LIVE_FEED) this.loadLiveField();
-    if (this.USE_LIVE_FEED) { const activeNow=this.currentlyLiveThemeKey(); if (activeNow) this.poll(); else if (this.eventLive(this.state.theme)) this.poll(); }  // don't wait up to 5 min for the first load
-    // Poll only during active tournament hours (Thu–Sun of the selected major) and only while the tab is visible — conserves API quota.
-    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && (this.eventLive(this.state.theme) || this.currentlyLiveThemeKey())) this.poll(); }, 300000);
+    if (this.USE_LIVE_FEED) { const activeNow=this.currentlyLiveThemeKey(); if (this.pollingEnabled() && (activeNow || this.eventLive(this.state.theme))) this.poll(); }  // don't wait up to 5 min for the first load
+    // Poll only during active tournament hours (Thu–Sun of the selected major), only while the tab is visible, and only when the admin polling toggle is on.
+    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.pollingEnabled() && (this.eventLive(this.state.theme) || this.currentlyLiveThemeKey())) this.poll(); }, 300000);
     this._lastPick = this.state.pickIdx;
     setTimeout(()=>this.centerRoundOrder(), 200);
     this.pullState();
@@ -1598,6 +1606,13 @@ class Component extends DCLogic {
     }
     return null;
   }
+  // Local hour gate: no polling roughly 11pm–6am (tournament's local morning tee times haven't started).
+  withinPollingHours(){ const h=new Date().getHours(); return h>=6 && h<23; }
+  // Local hour gate: no polling roughly 11pm–6am (tournament's local morning tee times haven't started).
+  withinPollingHours(){ const h=new Date().getHours(); return h>=6 && h<23; }
+  // Manual admin toggle — polling only runs when this is on. Defaults ON so behavior is unchanged until you flip it off.
+  pollingEnabled(){ try{ const v=localStorage.getItem('mtc_polling_on'); return v===null ? true : v==='1'; }catch(e){ return true; } }
+  setPollingEnabled(on){ try{ localStorage.setItem('mtc_polling_on', on?'1':'0'); }catch(e){} this.forceUpdate(); }
   eventLive(themeKey){
     // Which tournament round should be underway right now, purely from the calendar (Thu=1..Sun=4).
     // Backup for the live feed's per-player round field, which isn't always populated.
@@ -2344,6 +2359,7 @@ class Component extends DCLogic {
         onYr:(e)=>this.updateHistory(i,'yr',e.target.value), onChamp:(e)=>this.updateHistory(i,'champ',e.target.value), onCup:(e)=>this.updateHistory(i,'cup',e.target.value), onCuts:(e)=>this.updateHistory(i,'cuts',e.target.value), remove:()=>this.removeHistory(i) })),
       hasHistoryRows:(S.historyDraft||[]).length>0, addHistory:()=>this.addHistory(),
       enableClockFeature:()=>this.setClockFeature(true), disableClockFeature:()=>this.setClockFeature(false), clockFeatureOn:this.loadClockFeature(), clockFeatureOff:!this.loadClockFeature(),
+      enablePolling:()=>this.setPollingEnabled(true), disablePolling:()=>this.setPollingEnabled(false), pollingOn:this.pollingEnabled(), pollingOff:!this.pollingEnabled(),
       recordEventResults:()=>this.recordEventResults(), recordSeasonToHistory:()=>this.recordSeasonToHistory(), currentEventName:liveEventName2,
       nameFields:(S.nameDraft||this.PARTS.map(p=>p.name)).map((v,i)=>({ value:v, ini:this.initialsOf(v)||(i+1), placeholder:'Player '+(i+1), onInput:(e)=>this.updateName(i, e.target.value),
         venmoValue:(S.venmoDraft||this.PARTS.map(p=>this.venmo[p.id]||''))[i], onVenmoInput:(e)=>this.updateVenmo(i, e.target.value) })),
