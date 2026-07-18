@@ -508,6 +508,14 @@ body{margin:0; background:#0a0a0a;}
                   <div><div style="font-family:var(--fd); font-size:29px; color:var(--pin); line-height:1;">{{champName}}</div><div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--psub); margin-top:6px;">{{champ.strokesStr}} strokes · tiebreaker</div></div>
                   <div style="font-family:var(--fn); font-weight:700; font-size:50px; color:var(--pnum); line-height:.78; margin-bottom:7px;">{{champ.ptsStr}}</div>
                 </div>
+                <div style="display:flex; gap:6px; margin-top:14px;">
+                  <sc-for list="{{champ.evs}}" as="e" hint-placeholder-count="4">
+                    <div style="flex:1; text-align:center; padding:7px 0; border-radius:8px; background:{{e.c}};">
+                      <div style="font-family:var(--fb); font-weight:700; font-size:9px; letter-spacing:.06em; color:rgba(255,255,255,.7);">{{e.k}}</div>
+                      <div style="font-family:var(--fn); font-weight:700; font-size:15px; color:#fff; margin-top:1px;">{{e.v}}</div>
+                    </div>
+                  </sc-for>
+                </div>
               </div>
             </div>
             <div style="display:flex; padding:16px 22px 6px; font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.06em; color:var(--mut);">
