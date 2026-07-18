@@ -1456,7 +1456,13 @@ class Component extends DCLogic {
     return this.simulate(this.state.scores || this.baseScores()); // demo: random-walk the field so you can watch it move
   }
   simulate(prev) { const m={}; Object.keys(prev).forEach(n=>{ const p=prev[n]; if (p.c && Math.random()<0.4) { const dd=Math.random()<0.5?-1:1; m[n]={ s:Math.max(-16,Math.min(10,p.s+dd)), c:true }; } else { m[n]={ ...p }; } }); return m; }
-  async poll() { try { const players = await this.fetchLeaderboard(); this.setState({ scores:players, lastUpdated:Date.now() }, ()=>{ this.updateLiveCache(); this.capturePayout(); }); } catch(e){} }
+  async poll() {
+    try {
+      const players = await this.fetchLeaderboard();
+      if (this.USE_LIVE_FEED && Object.keys(players||{}).length === 0 && this.state.scores && Object.keys(this.state.scores).length>0) return; // don't blank out good data on an empty/failed response
+      this.setState({ scores:players, lastUpdated:Date.now() }, ()=>{ this.updateLiveCache(); this.capturePayout(); });
+    } catch(e){}
+  }
   rel(ms) { if (!ms) return 'just now'; const d=Math.floor((Date.now()-ms)/1000); if (d<5) return 'just now'; if (d<60) return d+'s ago'; if (d<3600) return Math.floor(d/60)+'m ago'; const h=Math.floor(d/3600); if (h<48) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
 
   componentDidMount() {
