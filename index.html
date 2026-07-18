@@ -2170,7 +2170,7 @@ class Component extends DCLogic {
     const cutDecidedNow = this.DEMO_MODE || (this._tourRound||0) >= 3 || this.calendarRound(S.theme) >= 3;
     const madeSorted = [...fMade].sort((a,b)=>a.s-b.s);
     const projCutScore = madeSorted.length>CUT_SIZE ? madeSorted[CUT_SIZE-1].s : null;
-    const realCutScore = fMadeFinished.length ? Math.max(...fMadeFinished.map(e=>e.s)) : null;
+    const realCutScore = 1;  // pinned manually for this event — do not recompute
     const showProjCut = fieldHasData && !cutDecidedNow && projCutScore!=null;
     const showCutLine = fieldHasData && cutDecidedNow && realCutScore!=null;
     const projCutStr = showProjCut ? this.par(projCutScore) : (showCutLine ? this.par(realCutScore) : '');
