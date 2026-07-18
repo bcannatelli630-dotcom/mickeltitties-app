@@ -716,6 +716,16 @@ body{margin:0; background:#0a0a0a;}
             <div style="margin:16px 22px 0; padding:26px 22px; background:var(--pan); border-radius:var(--rad); text-align:center; font-family:var(--fb); font-weight:600; font-size:13px; color:var(--psub);">No headlines found yet.</div>
           </sc-if>
           <div style="padding:14px 22px 0;">
+            <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px;">THE POOL WIRE</div>
+            <sc-for list="{{poolWireRows}}" as="w" hint-placeholder-count="8">
+              <div style="padding:14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--acc); border-radius:var(--rad);">
+                <div style="font-family:var(--fb); font-weight:700; font-size:14px; color:var(--ink); line-height:1.3;">{{w.headline}}</div>
+                <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-top:6px; line-height:1.5;">{{w.body}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:14px 22px 0;">
+            <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px;">HEADLINES</div>
             <sc-for list="{{newsRows}}" as="n" hint-placeholder-count="5">
               <div onClick="{{n.open}}" style="display:flex; gap:12px; padding:14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--acc); border-radius:var(--rad); cursor:pointer;">
                 <img src="{{n.favicon}}" style="width:28px; height:28px; border-radius:7px; flex:none; margin-top:2px; background:var(--line); object-fit:contain;" onerror="this.style.visibility='hidden'" />
@@ -1747,6 +1757,40 @@ class Component extends DCLogic {
   venmo = {};  // id -> venmo username (no @), editable in Settings → Names
   applyVenmo(arr){ if(!Array.isArray(arr)) return; arr.forEach((v,i)=>{ if(i<this.PARTS.length) this.venmo[i]=(v||'').trim().replace(/^@/,''); }); }
   loadVenmo(){ try{ const raw=localStorage.getItem('mtc_venmo'); if(raw) this.applyVenmo(JSON.parse(raw)); }catch(e){} }
+  // Satirical "Pool Wire" blurbs — one per participant, tone scales with current-event rank.
+  // Na (by name, case-insensitive) always gets the softer "battled admirably" treatment on a bad day.
+  poolWire(){
+    const rows = this.PARTS.map(p=>{ const e=this.computeEvent(p.id); return { name:p.name, total:e.total }; });
+    const sorted = [...rows].sort((a,b)=>a.total-b.total);
+    const rankOf = {}; sorted.forEach((r,i)=>{ rankOf[r.name]=i+1; });
+    const n = rows.length;
+    const isNa = (nm)=> String(nm||'').trim().toLowerCase()==='na';
+    const par = (v)=> v===0?'E':(v>0?'+'+v:'\u2212'+(-v));
+    return rows.map(r=>{
+      const rank = rankOf[r.name]; const ts = par(r.total);
+      let headline, body;
+      if (isNa(r.name) && rank >= n-1) {
+        headline = `${r.name} battles the elements, comes up short`;
+        body = `${r.name} grinded it out all day at ${ts} and, in the end, the conditions were simply too much to overcome. A tough day at the office, but nobody in the pool worked harder for it.`;
+      } else if (rank === 1) {
+        headline = `${r.name} lapping the field at ${ts}`;
+        body = `While the rest of the pool flails, ${r.name} is out here playing a different sport. Somebody remind the field this is supposed to be a competition.`;
+      } else if (rank <= Math.ceil(n/3)) {
+        headline = `${r.name} quietly keeping pace at ${ts}`;
+        body = `Not flashy, but ${r.name} is doing enough to stay ahead of a field that's mostly beating itself. Faint praise, but praise nonetheless.`;
+      } else if (rank <= n - Math.ceil(n/3)) {
+        headline = `${r.name} treading water at ${ts}`;
+        body = `Right in the mushy middle where nobody remembers your name by Sunday. ${r.name} is technically still alive, which is the nicest thing anyone can say about this round.`;
+      } else if (rank === n) {
+        headline = `${r.name} finds a new way to embarrass himself at ${ts}`;
+        body = `An absolute disaster from start to finish. ${r.name} single-handedly propping up the bottom of the leaderboard and the rest of the pool's confidence in the process.`;
+      } else {
+        headline = `${r.name} circling the drain at ${ts}`;
+        body = `Rough day. ${r.name}'s roster is bleeding strokes and the only thing worse than the golf is having to watch it happen in real time.`;
+      }
+      return { headline, body };
+    });
+  }
   initialsOf(name){ const w=(name||'').trim().split(/\s+/).filter(Boolean); if(!w.length) return '?'; if(w.length>=2) return (w[0][0]+w[1][0]).toUpperCase(); return w[0].slice(0,2).toUpperCase(); }
   applyNames(arr){ if(!Array.isArray(arr)) return; arr.forEach((nm,i)=>{ if(i<this.PARTS.length){ const t=(nm||'').trim(); if(t){ this.PARTS[i].name=t; this.PARTS[i].ini=this.initialsOf(t); } } }); }
   loadNames(){ try{ const raw=localStorage.getItem('mtc_names'); if(raw){ this.applyNames(JSON.parse(raw)); } }catch(e){} }
@@ -2289,6 +2333,7 @@ class Component extends DCLogic {
       isRecords:S.screen==='records', goRecords:()=>this.setState({screen:'records', draftPreview:false}), navRecords:nav(S.screen==='records'),
       isNews:S.screen==='news', goNews:()=>{ this.setState({screen:'news', draftPreview:false}); this.loadNews(); }, navNews:nav(S.screen==='news'),
       newsRows:(S.newsItems||[]), newsLoading:!!S.newsLoading, newsEmpty:(!S.newsLoading && !S.newsErr && !(S.newsItems||[]).length), newsErr:!!S.newsErr, newsEventName:liveEventName2,
+      poolWireRows:this.poolWire(),
       openDraftPreview:()=>this.setState({screen:'draft', draftPreview:true, showSettings:false}),
       pastSeasons:PAST, allTime, recordTop,
       winnerPotStr:(pv?pv.winnerPotStr:winnerPotStr), winnerTaker:(pv?pv.winnerTaker:winOwner), winnerGolfer:(pv?pv.winnerGolfer:winGolfer), winnerScoreStr:(pv?pv.winnerScoreStr:this.par(winScore)), winnerTaken:(pv?pv.winnerTaken:winnerTaken), noWinnerYet:(pv?pv.noWinnerYet:!winnerTaken),
