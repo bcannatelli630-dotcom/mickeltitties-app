@@ -198,6 +198,9 @@ body{margin:0; background:#0a0a0a;}
           </div>
 
           <sc-if value="{{eventViewPool}}" hint-placeholder-val="{{true}}">
+          <sc-if value="{{anyNoDataOverall}}" hint-placeholder-val="{{false}}">
+            <div style="margin:14px 22px 0; padding:12px 14px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); font-family:var(--fb); font-weight:600; font-size:12px; color:var(--mut);">Some drafted players couldn't be matched to the live feed — showing "–" until resolved. Check Settings → Rosters for a name mismatch.</div>
+          </sc-if>
           <div style="padding:16px 22px 0;">
             <div onClick="{{leader.open}}" style="padding:16px 18px; background:var(--pan); border-radius:var(--rad); cursor:pointer;">
               <div style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.18em; color:var(--psub);">LEADER · BEST 4 OF 5</div>
@@ -1668,7 +1671,7 @@ class Component extends DCLogic {
   computeEvent(id) {
     const sc = this.state.scores;
     const roster = this.DEMO_MODE ? this.ROSTERS[id] : ((this.state.drafted||[]).filter(d=>d.pid===id).map(d=>[d.player,0,1]));
-    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.started!==undefined ? lv.started : (lv.c===false || roundDone))); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
+    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.started!==undefined ? lv.started : (lv.c===false || roundDone))); const noData = !this.DEMO_MODE && !lv; return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started, noData }; });
     const made = players.filter(p=>p.c).map(p=>p.s);
     const worst = this.anchorScore();   // field-wide anchorman, not just this participant's roster
     players.forEach(p=>{ p.eff = p.c ? p.s : worst+this.scoring.mcPenalty; });
@@ -1926,13 +1929,16 @@ class Component extends DCLogic {
     let standings = this.PARTS.map(pt => {
       const ev = this.computeEvent(pt.id);
       const cos = this.DEMO_MODE ? this.COSMETIC[pt.id] : ['','',''];
-      return { ...pt, ...ev, today:cos[0], thru:cos[1], up:cos[2]==='up', down:cos[2]==='down',
-        totalStr:this.par(ev.total), tcol:(ev.total<0?'#E5384E':'var(--ink)'), tcolP:(ev.total<0?'#E5384E':'var(--pnum)'), mcStr:'MC \u00d7'+ev.mc };
+      const hasNoData = !this.DEMO_MODE && (ev.players||[]).some(p=>p.noData);
+      const totalStrRaw = hasNoData ? '\u2013' : this.par(ev.total);
+      return { ...pt, ...ev, today:cos[0], thru:cos[1], up:cos[2]==='up', down:cos[2]==='down', hasNoData,
+        totalStr:totalStrRaw, tcol:(hasNoData?'var(--fnt)':(ev.total<0?'#E5384E':'var(--ink)')), tcolP:(hasNoData?'var(--fnt)':(ev.total<0?'#E5384E':'var(--pnum)')), mcStr:'MC \u00d7'+ev.mc };
     }).sort((a,b)=>a.total-b.total);
     standings.forEach((s)=>{ s.r=1+standings.filter(x=>x.total<s.total).length; s.open=()=>this.setState({ detail:s.id }); });
     const leader = standings[0];
     const rest = standings.slice(1);
     const eventTop3 = standings.slice(0,3).map(s=>({ r:s.r, name:s.name, totalStr:s.totalStr, tcol:s.tcol, thru:s.thru }));
+    const anyNoDataOverall = standings.some(s=>s.hasNoData);
     const hasScores = !!(S.scores && Object.keys(S.scores).length && Object.values(S.scores).some(v=>v && (v.s!==0 || v.c===false)));
     const live = this.DEMO_MODE || (hasScores && this.eventStarted(S.theme));            // event scoring is live/complete — show it once tee-off has passed, not just during the Thu–Sun window
     const anyDrafted = (S.drafted||[]).length > 0;
@@ -2177,19 +2183,20 @@ class Component extends DCLogic {
           const inProgress = started && !roundDone;
           const roundDoneAwaitingCut = started && roundDone && !cutDecided;
           return {
-            n:p.n, effStr:this.par(p.eff),
-            status: !started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (roundDoneAwaitingCut ? 'Round complete · cut TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut'))),
-            tag: !started ? 'TBD' : (inProgress ? ('THRU '+th) : (roundDoneAwaitingCut ? 'TBD' : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED')))),
+            n:p.n, effStr:(p.noData?'\u2013':this.par(p.eff)),
+            status: p.noData ? 'Live score unavailable' : (!started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (roundDoneAwaitingCut ? 'Round complete · cut TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut')))),
+            tag: p.noData ? 'N/A' : (!started ? 'TBD' : (inProgress ? ('THRU '+th) : (roundDoneAwaitingCut ? 'TBD' : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'))))),
             counted: p.counted, isMC,
             dot: p.counted ? 'var(--up)' : 'var(--fnt)',
             nameCol: p.counted ? 'var(--ink)' : 'var(--mut)',
-            tagCol: (!started || inProgress) ? 'var(--acc)' : (isMC ? 'var(--mci)' : (p.counted ? 'var(--up)' : 'var(--fnt)')),
+            tagCol: p.noData ? 'var(--fnt)' : ((!started || inProgress) ? 'var(--acc)' : (isMC ? 'var(--mci)' : (p.counted ? 'var(--up)' : 'var(--fnt)'))),
           };
         });
         const anyPending = players.some(p=>p.status==='Cut Information TBD' || p.status.indexOf('In progress')===0);
+        const anyNoData = players.some(p=>p.status==='Live score unavailable');
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
-          note: anyPending ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.'),
-          penaltyStr: anyPending ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
+          note: anyNoData ? 'Some players couldn\u2019t be matched to the live feed \u2014 check Settings \u2192 Rosters for a name mismatch.' : (anyPending ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.')),
+          penaltyStr: anyNoData ? 'Live score unavailable' : (anyPending ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.'))) };
       }
     }
 
@@ -2222,7 +2229,7 @@ class Component extends DCLogic {
       goCup:()=>this.setState({screen:'season',seasonTab:'cup'}), goPots:()=>this.setState({screen:'season',seasonTab:'pots'}),
       navHome:nav(S.screen==='home'), navDraft:((draftClosed||draftNotOpen)?nav(false):nav(S.screen==='draft')), navEvent:nav(S.screen==='event'), navSeason:nav(S.screen==='season'),
       chromeBg, navBg, navBorder, statusInk, gearStroke,
-      leader, rest, eventTop3,
+      leader, rest, eventTop3, anyNoDataOverall,
       seasonLeader, champ, seasonRest, cupHolder, cupWatch, champName, cupName,
       isStd:S.seasonTab==='standings'&&seasonStarted, isCup:S.seasonTab==='cup'&&seasonStarted, isPots:S.seasonTab==='pots'&&seasonStarted,
       seasonTabs:[
