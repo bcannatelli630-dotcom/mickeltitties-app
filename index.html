@@ -510,10 +510,7 @@ body{margin:0; background:#0a0a0a;}
                 </div>
                 <div style="display:flex; gap:6px; margin-top:14px;">
                   <sc-for list="{{champ.evs}}" as="e" hint-placeholder-count="4">
-                    <div style="width:32px; height:32px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px; background:{{e.c}};">
-                      <div style="font-family:var(--fb); font-weight:700; font-size:8px; letter-spacing:.04em; color:rgba(255,255,255,.7); line-height:1;">{{e.k}}</div>
-                      <div style="font-family:var(--fn); font-weight:700; font-size:13px; color:#fff; line-height:1.15;">{{e.v}}</div>
-                    </div>
+                    <span style="width:21px; height:21px; border-radius:5px; background:{{e.c}}; color:{{e.fg}}; font-size:11px; font-family:var(--fb); font-weight:700; display:flex; align-items:center; justify-content:center;">{{e.k}}</span>
                   </sc-for>
                 </div>
               </div>
@@ -2010,7 +2007,7 @@ class Component extends DCLogic {
       liveCols.forEach(col=>{ if(!(recEv[col]>0)){ const lb=liveByCol[col]; if(lb.pos[pt.id]) evArr[col]=lb.pos[pt.id]; if(lb.str&&lb.str[pt.id]!=null) strTotal+=lb.str[pt.id]; if(lb.mc&&lb.mc[pt.id]!=null) mcTotal+=lb.mc[pt.id]; } });
       const pts = evArr.reduce((a,b)=>a+(b||0),0);
       return { ...pt, pts, str:strTotal, mc:mcTotal, ptsStr:String(pts), strokesStr:this.par(strTotal), strCol:(strTotal<0?'#E5384E':'var(--ink)'),
-        evs:[{k:'M',v:fin(evArr[0]),c:'#1E6B3F'},{k:'P',v:fin(evArr[1]),c:'#0E4C92'},{k:'U',v:fin(evArr[2]),c:'#C8102E'},{k:'O',v:fin(evArr[3]),c:'#12324B'}] };
+        evs:[{k:'M',v:fin(evArr[0]),c:'#1E6B3F',fg:'#F4D35E'},{k:'P',v:fin(evArr[1]),c:'#0E4C92',fg:'#EAF2FB'},{k:'U',v:fin(evArr[2]),c:'#C8102E',fg:'#D9D9D9'},{k:'O',v:fin(evArr[3]),c:'#12324B',fg:'#F4D35E'}] };
     }).sort((a,b)=> a.pts-b.pts || a.str-b.str);
     season.forEach((s)=>{ s.r=1+season.filter(x=> (x.pts<s.pts) || (x.pts===s.pts && x.str<s.str)).length; });
     const champ = season[0];
