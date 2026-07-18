@@ -1637,9 +1637,9 @@ class Component extends DCLogic {
   // We only invent a value in DEMO_MODE — never against live data.
   golferThru(name){
     const sc = this.state.scores; const lv = this.scoreFor(name);
-    if (lv && lv.thru !== undefined && lv.thru !== null && lv.thru !== '') return lv.thru;
+    if (lv && lv.thru !== undefined && lv.thru !== null && lv.thru !== '' && lv.thru !== '-') return lv.thru;
     if (lv && lv.started === false) return '';   // hasn't teed off — no hole progress yet
-    if (!this.DEMO_MODE) return 'F';   // live + no thru = round complete, not a fake hole number
+    if (!this.DEMO_MODE) return 'F';   // live + no real thru (blank or '-') = round complete
     let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0;
     const v = h % 11; return v<=1 ? 'F' : (8+v);
   }
