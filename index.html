@@ -2158,8 +2158,10 @@ class Component extends DCLogic {
     const allScores = S.scores || {};
     const ownerOf = {}; (S.drafted||[]).forEach(d=>{ ownerOf[d.player]=this.PARTS[d.pid]?this.PARTS[d.pid].name.split(' ')[0]:''; });
     const fEntries = Object.keys(allScores).map(n=>({ n, s:allScores[n].s, c:allScores[n].c, thru:allScores[n].thru }));
+    const roundFinished = (e)=>{ const t=e.thru; return t===''||t==null||t==='F'||t===18||t==='18'||t==='-'; };
     const fMade = fEntries.filter(e=>e.c).sort((a,b)=>a.s-b.s);
     const fMissed = fEntries.filter(e=>!e.c).sort((a,b)=>a.s-b.s);
+    const fMadeFinished = fMade.filter(roundFinished);
     const fullBoard = fMade.map(e=>{ const better=fMade.filter(x=>x.s<e.s).length; const tied=fMade.filter(x=>x.s===e.s).length>1; const th=(e.thru!=null&&e.thru!=='')?String(e.thru):''; return { pos:(tied?'T':'')+(better+1), name:e.n, scoreStr:this.par(e.s), scol:(e.s<0?'#E5384E':(!!ownerOf[e.n]?'var(--pin)':'var(--ink)')), thruStr:(th==='18'?'F':(th?('thru '+th):'')), isMine:!!ownerOf[e.n], notMine:!ownerOf[e.n], owner:ownerOf[e.n]||'' }; })
       .concat(fMissed.map(e=>({ pos:'CUT', name:e.n, scoreStr:this.par(e.s), scol:(!!ownerOf[e.n]?'var(--pin)':'var(--ink)'), thruStr:'', isMine:!!ownerOf[e.n], notMine:!ownerOf[e.n], owner:ownerOf[e.n]||'' })));
     const fieldHasData = fEntries.length>0;
@@ -2168,7 +2170,7 @@ class Component extends DCLogic {
     const cutDecidedNow = this.DEMO_MODE || (this._tourRound||0) >= 3 || this.calendarRound(S.theme) >= 3;
     const madeSorted = [...fMade].sort((a,b)=>a.s-b.s);
     const projCutScore = madeSorted.length>CUT_SIZE ? madeSorted[CUT_SIZE-1].s : null;
-    const realCutScore = madeSorted.length ? madeSorted[madeSorted.length-1].s : null;
+    const realCutScore = fMadeFinished.length ? Math.max(...fMadeFinished.map(e=>e.s)) : null;
     const showProjCut = fieldHasData && !cutDecidedNow && projCutScore!=null;
     const showCutLine = fieldHasData && cutDecidedNow && realCutScore!=null;
     const projCutStr = showProjCut ? this.par(projCutScore) : (showCutLine ? this.par(realCutScore) : '');
