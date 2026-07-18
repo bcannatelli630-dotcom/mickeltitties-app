@@ -186,7 +186,8 @@ body{margin:0; background:#0a0a0a;}
           <div style="padding:14px 22px 0;">
             <div style="padding:10px 14px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); display:flex; align-items:center; justify-content:space-between;">
               <div style="display:flex; align-items:center; gap:8px;"><span style="width:7px; height:7px; border-radius:50%; background:var(--live); animation:mtPulse 1.4s infinite;"></span><span style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.06em; color:var(--mut);">{{liveStatusStr}}</span></div>
-              <button onClick="{{refreshNow}}" style="border:none; background:none; font-family:var(--fb); font-weight:700; font-size:12px; color:var(--acc); cursor:pointer;">Refresh now</button>
+              <!-- Refresh now temporarily disabled — re-enable by restoring onClick="{{refreshNow}}" and removing disabled/opacity below -->
+              <button disabled="true" style="border:none; background:none; font-family:var(--fb); font-weight:700; font-size:12px; color:var(--acc); opacity:.35; cursor:default;">Refresh now</button>
             </div>
           </div>
 
@@ -198,6 +199,9 @@ body{margin:0; background:#0a0a0a;}
           </div>
 
           <sc-if value="{{eventViewPool}}" hint-placeholder-val="{{true}}">
+          <sc-if value="{{anyNoDataOverall}}" hint-placeholder-val="{{false}}">
+            <div style="margin:14px 22px 0; padding:12px 14px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); font-family:var(--fb); font-weight:600; font-size:12px; color:var(--mut);">Some drafted players couldn't be matched to the live feed — showing "–" until resolved. Check Settings → Rosters for a name mismatch.</div>
+          </sc-if>
           <div style="padding:16px 22px 0;">
             <div onClick="{{leader.open}}" style="padding:16px 18px; background:var(--pan); border-radius:var(--rad); cursor:pointer;">
               <div style="font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.18em; color:var(--psub);">LEADER · BEST 4 OF 5</div>
@@ -504,6 +508,14 @@ body{margin:0; background:#0a0a0a;}
                   <div><div style="font-family:var(--fd); font-size:29px; color:var(--pin); line-height:1;">{{champName}}</div><div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--psub); margin-top:6px;">{{champ.strokesStr}} strokes · tiebreaker</div></div>
                   <div style="font-family:var(--fn); font-weight:700; font-size:50px; color:var(--pnum); line-height:.78; margin-bottom:7px;">{{champ.ptsStr}}</div>
                 </div>
+                <div style="display:flex; gap:6px; margin-top:14px;">
+                  <sc-for list="{{champ.evs}}" as="e" hint-placeholder-count="4">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                      <span style="width:21px; height:21px; border-radius:5px; background:{{e.c}}; color:{{e.fg}}; font-size:11px; font-family:var(--fb); font-weight:700; display:flex; align-items:center; justify-content:center;">{{e.k}}</span>
+                      <span style="font-family:var(--fn); font-weight:700; font-size:14px; color:var(--pin);">{{e.v}}</span>
+                    </div>
+                  </sc-for>
+                </div>
               </div>
             </div>
             <div style="display:flex; padding:16px 22px 6px; font-family:var(--fb); font-weight:700; font-size:10px; letter-spacing:.06em; color:var(--mut);">
@@ -608,6 +620,19 @@ body{margin:0; background:#0a0a0a;}
                 <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--pin); margin-top:8px; line-height:1.5;">Who pays whom for this event's Outright Winner pot and Winning-Score pool. The Missed-Cut Kitty settles at season's end.</div>
               </div>
             </div>
+            <sc-if value="{{hasVenmoLinks}}" hint-placeholder-val="{{false}}">
+              <div style="padding:14px 22px 0;">
+                <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.06em; color:var(--mut); margin-bottom:8px;">PAY A PARTICIPANT</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                  <sc-for list="{{venmoLinks}}" as="v" hint-placeholder-count="8">
+                    <a href="{{v.url}}" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:6px; padding:8px 12px; background:var(--card); border:1px solid var(--line); border-radius:999px; text-decoration:none;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#3D95CE"><path d="M20.6 3.5c.6 1 .9 2.3.9 4 0 5-4.3 11.5-7.8 16H7.2L4.5 4.9l6-.6 1.4 11.3c1.3-2.1 2.9-5.5 2.9-7.8 0-1.2-.2-2.1-.6-2.8l6.4-1.5Z"/></svg>
+                      <span style="font-family:var(--fb); font-weight:600; font-size:13px; color:var(--ink);">{{v.name}}</span>
+                    </a>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
             <sc-if value="{{settleHasData}}" hint-placeholder-val="{{true}}">
               <div style="padding:14px 22px 0;">
                 <sc-for list="{{transfers}}" as="t" hint-placeholder-count="4">
@@ -942,9 +967,12 @@ body{margin:0; background:#0a0a0a;}
             <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--mut); margin-top:14px; line-height:1.5;">The eight names for the season. They flow through every screen; initials update automatically.</div>
             <div style="margin-top:14px; display:flex; flex-direction:column; gap:10px;">
               <sc-for list="{{nameFields}}" as="f" hint-placeholder-count="8">
-                <div style="display:flex; align-items:center; gap:12px;">
-                  <span style="width:34px; height:34px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:999px; background:var(--pan); color:var(--pin); font-family:var(--fn); font-weight:700; font-size:13px;">{{f.ini}}</span>
-                  <input value="{{f.value}}" onInput="{{f.onInput}}" placeholder="{{f.placeholder}}" style="flex:1; min-width:0; padding:12px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                <div style="display:flex; flex-direction:column; gap:8px; padding:10px; border:1px solid var(--line); border-radius:var(--rad);">
+                  <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="width:34px; height:34px; flex:none; display:flex; align-items:center; justify-content:center; border-radius:999px; background:var(--pan); color:var(--pin); font-family:var(--fn); font-weight:700; font-size:13px;">{{f.ini}}</span>
+                    <input value="{{f.value}}" onInput="{{f.onInput}}" placeholder="{{f.placeholder}}" style="flex:1; min-width:0; padding:12px 14px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:15px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
+                  </div>
+                  <input value="{{f.venmoValue}}" onInput="{{f.onVenmoInput}}" placeholder="Venmo username (no @)" style="margin-left:46px; padding:11px 12px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:var(--fb); font-weight:600; font-size:13px; border-radius:var(--rad); outline:none; box-sizing:border-box;" />
                 </div>
               </sc-for>
             </div>
@@ -1042,6 +1070,14 @@ body{margin:0; background:#0a0a0a;}
               </div>
               <sc-if value="{{clockFeatureOn}}" hint-placeholder-val="{{false}}"><button onClick="{{disableClockFeature}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">On</button></sc-if>
               <sc-if value="{{clockFeatureOff}}" hint-placeholder-val="{{true}}"><button onClick="{{enableClockFeature}}" style="border:1px solid var(--line); background:transparent; color:var(--mut); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">Off</button></sc-if>
+            </div>
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line); display:flex; align-items:center; gap:12px;">
+              <div style="flex:1;">
+                <div style="font-family:var(--fb); font-weight:600; font-size:14px; color:var(--ink);">Live score polling (admin)</div>
+                <div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--mut); margin-top:2px; line-height:1.4;">Turn off to fully suspend API calls (e.g. conserve quota). "Refresh now" is currently disabled separately.</div>
+              </div>
+              <sc-if value="{{pollingOn}}" hint-placeholder-val="{{true}}"><button onClick="{{disablePolling}}" style="border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">On</button></sc-if>
+              <sc-if value="{{pollingOff}}" hint-placeholder-val="{{false}}"><button onClick="{{enablePolling}}" style="border:1px solid var(--line); background:transparent; color:var(--mut); font-family:var(--fb); font-weight:700; font-size:11px; padding:8px 14px; border-radius:999px; cursor:pointer;">Off</button></sc-if>
             </div>
           </sc-if>
 
@@ -1440,12 +1476,21 @@ class Component extends DCLogic {
     return this.simulate(this.state.scores || this.baseScores()); // demo: random-walk the field so you can watch it move
   }
   simulate(prev) { const m={}; Object.keys(prev).forEach(n=>{ const p=prev[n]; if (p.c && Math.random()<0.4) { const dd=Math.random()<0.5?-1:1; m[n]={ s:Math.max(-16,Math.min(10,p.s+dd)), c:true }; } else { m[n]={ ...p }; } }); return m; }
-  async poll() { try { const players = await this.fetchLeaderboard(); this.setState({ scores:players, lastUpdated:Date.now() }, ()=>{ this.updateLiveCache(); this.capturePayout(); }); } catch(e){} }
+  async poll() {
+    try {
+      const activeNow = this.currentlyLiveThemeKey();
+      if (activeNow && activeNow !== this.state.theme) { this.setState({ theme: activeNow }); }
+      const players = await this.fetchLeaderboard();
+      if (this.USE_LIVE_FEED && Object.keys(players||{}).length === 0 && this.state.scores && Object.keys(this.state.scores).length>0) return; // don't blank out good data on an empty/failed response
+      this.setState({ scores:players, lastUpdated:Date.now() }, ()=>{ this.updateLiveCache(); this.capturePayout(); });
+    } catch(e){}
+  }
   rel(ms) { if (!ms) return 'just now'; const d=Math.floor((Date.now()-ms)/1000); if (d<5) return 'just now'; if (d<60) return d+'s ago'; if (d<3600) return Math.floor(d/60)+'m ago'; const h=Math.floor(d/3600); if (h<48) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
 
   componentDidMount() {
     // Always default the displayed event to The Masters on load; switching during a session still works.
-    this.loadNames(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.forceUpdate();
+    this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.forceUpdate();
+    { const activeNow=this.currentlyLiveThemeKey(); if (activeNow && activeNow!==this.state.theme) this.setState({ theme: activeNow }); }
     if (this.state.drafted === null){
       if (this.DEMO_MODE){ this.setState({ drafted:this.initialDrafted(), field:this.initialField(), pickIdx:18, draftOrder:[0,1,2,3,4,5,6,7] }); }
       else { const cd=this.draftFor(this.state.theme); this.setState({ drafted:cd.drafted, field:this.initialField(), pickIdx:cd.pickIdx, draftOrder:cd.order }); }
@@ -1453,9 +1498,9 @@ class Component extends DCLogic {
     this._t = setInterval(()=>{ this.setState(st => (st.running && st.clockArmed && st.clock>0) ? { clock: st.clock-1 } : null); }, 1000);
     if (!this.state.scores) this.setState({ scores:this.baseScores(), lastUpdated:Date.now() });
     if (this.USE_LIVE_FEED) this.loadLiveField();
-    if (this.USE_LIVE_FEED && this.eventLive(this.state.theme)) this.poll();  // don't wait up to 5 min for the first load
-    // Poll only during active tournament hours (Thu–Sun of the selected major) and only while the tab is visible — conserves API quota.
-    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.eventLive(this.state.theme)) this.poll(); }, 300000);
+    if (this.USE_LIVE_FEED) { const activeNow=this.currentlyLiveThemeKey(); if (this.pollingEnabled() && (activeNow || this.eventLive(this.state.theme))) this.poll(); }  // don't wait up to 5 min for the first load
+    // Poll only during active tournament hours (Thu–Sun of the selected major), only while the tab is visible, and only when the admin polling toggle is on.
+    this._poll = setInterval(()=>{ if (this.state.live && document.visibilityState==='visible' && this.pollingEnabled() && (this.eventLive(this.state.theme) || this.currentlyLiveThemeKey())) this.poll(); }, 300000);
     this._lastPick = this.state.pickIdx;
     setTimeout(()=>this.centerRoundOrder(), 200);
     this.pullState();
@@ -1557,6 +1602,25 @@ class Component extends DCLogic {
 
   _knownThu(){ return { 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } }; }
   // Is this major live right now? (first group tees off Thursday AM → final standings ~Sunday night)
+  currentlyLiveThemeKey(){
+    const tbls=this._knownThu(); const now=new Date();
+    for(const y of [now.getFullYear(), now.getFullYear()+1]){
+      const tbl=tbls[y]; if(!tbl) continue;
+      for(const k of ['masters','pga','usopen','open']){
+        if(!tbl[k]) continue;
+        const [m,d]=tbl[k]; const thu=new Date(y,m,d,5,0,0); const sun=new Date(y,m,d+3,23,59,0);
+        if(now>=thu && now<=sun) return k;
+      }
+    }
+    return null;
+  }
+  // Local hour gate: no polling roughly 11pm–6am (tournament's local morning tee times haven't started).
+  withinPollingHours(){ const h=new Date().getHours(); return h>=6 && h<23; }
+  // Local hour gate: no polling roughly 11pm–6am (tournament's local morning tee times haven't started).
+  withinPollingHours(){ const h=new Date().getHours(); return h>=6 && h<23; }
+  // Manual admin toggle — polling only runs when this is on. Defaults ON so behavior is unchanged until you flip it off.
+  pollingEnabled(){ try{ const v=localStorage.getItem('mtc_polling_on'); return v===null ? true : v==='1'; }catch(e){ return true; } }
+  setPollingEnabled(on){ try{ localStorage.setItem('mtc_polling_on', on?'1':'0'); }catch(e){} this.forceUpdate(); }
   eventLive(themeKey){
     // Which tournament round should be underway right now, purely from the calendar (Thu=1..Sun=4).
     // Backup for the live feed's per-player round field, which isn't always populated.
@@ -1572,12 +1636,13 @@ class Component extends DCLogic {
   // Backup for the live feed's per-player round field, which isn't always populated.
   calendarRound(themeKey){
     const tbls=this._knownThu(); const now=new Date();
+    const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     for(const y of [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]){
       const tbl=tbls[y]; if(!tbl||!tbl[themeKey]) continue;
-      const [m,d]=tbl[themeKey]; const thu=new Date(y,m,d,5,0,0);
-      if(now<thu) continue;
-      const days=Math.floor((now-thu)/86400000);
-      if(days<=3) return Math.min(days+1,4);
+      const [m,d]=tbl[themeKey]; const thuMid=new Date(y,m,d);
+      const days=Math.round((todayMid-thuMid)/86400000);
+      if(days<0 || days>3) continue;
+      return days+1;
     }
     return 0;
   }
@@ -1620,9 +1685,9 @@ class Component extends DCLogic {
   // We only invent a value in DEMO_MODE — never against live data.
   golferThru(name){
     const sc = this.state.scores; const lv = this.scoreFor(name);
-    if (lv && lv.thru !== undefined && lv.thru !== null && lv.thru !== '') return lv.thru;
+    if (lv && lv.thru !== undefined && lv.thru !== null && lv.thru !== '' && lv.thru !== '-') return lv.thru;
     if (lv && lv.started === false) return '';   // hasn't teed off — no hole progress yet
-    if (!this.DEMO_MODE) return 'F';   // live + no thru = round complete, not a fake hole number
+    if (!this.DEMO_MODE) return 'F';   // live + no real thru (blank or '-') = round complete
     let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0;
     const v = h % 11; return v<=1 ? 'F' : (8+v);
   }
@@ -1645,7 +1710,7 @@ class Component extends DCLogic {
   computeEvent(id) {
     const sc = this.state.scores;
     const roster = this.DEMO_MODE ? this.ROSTERS[id] : ((this.state.drafted||[]).filter(d=>d.pid===id).map(d=>[d.player,0,1]));
-    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.started!==undefined ? lv.started : (lv.c===false || roundDone))); return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started }; });
+    const players = roster.map(([n,bs,bc])=>{ const lv = this.scoreFor(n); const th=this.golferThru(n); const roundDone = (th==='F'||th===18||th==='18'); const started = !!(lv && (lv.started!==undefined ? lv.started : (lv.c===false || roundDone))); const noData = !this.DEMO_MODE && !lv; return { n, s: lv?lv.s:bs, c: lv?lv.c:!!bc, started, noData }; });
     const made = players.filter(p=>p.c).map(p=>p.s);
     const worst = this.anchorScore();   // field-wide anchorman, not just this participant's roster
     players.forEach(p=>{ p.eff = p.c ? p.s : worst+this.scoring.mcPenalty; });
@@ -1679,7 +1744,9 @@ class Component extends DCLogic {
   }
   setTheme(k){ const cd=this.draftFor(k); this._lastPick = cd.pickIdx; this.setState({ theme:k, drafted:cd.drafted, pickIdx:cd.pickIdx, draftOrder:cd.order }); try{ localStorage.setItem('mtc_theme',k); }catch(e){} if(this.USE_LIVE_FEED){ setTimeout(()=>this.loadLiveField(),50); setTimeout(()=>this.poll(),60); } }
 
-  // ----- participant names -----
+  venmo = {};  // id -> venmo username (no @), editable in Settings → Names
+  applyVenmo(arr){ if(!Array.isArray(arr)) return; arr.forEach((v,i)=>{ if(i<this.PARTS.length) this.venmo[i]=(v||'').trim().replace(/^@/,''); }); }
+  loadVenmo(){ try{ const raw=localStorage.getItem('mtc_venmo'); if(raw) this.applyVenmo(JSON.parse(raw)); }catch(e){} }
   initialsOf(name){ const w=(name||'').trim().split(/\s+/).filter(Boolean); if(!w.length) return '?'; if(w.length>=2) return (w[0][0]+w[1][0]).toUpperCase(); return w[0].slice(0,2).toUpperCase(); }
   applyNames(arr){ if(!Array.isArray(arr)) return; arr.forEach((nm,i)=>{ if(i<this.PARTS.length){ const t=(nm||'').trim(); if(t){ this.PARTS[i].name=t; this.PARTS[i].ini=this.initialsOf(t); } } }); }
   loadNames(){ try{ const raw=localStorage.getItem('mtc_names'); if(raw){ this.applyNames(JSON.parse(raw)); } }catch(e){} }
@@ -1705,7 +1772,7 @@ class Component extends DCLogic {
   num2strZ(n){ return (n===undefined||n===null||isNaN(n))?'':String(n); }  // keeps 0 visible (real strokes/missed-cut data)
   openSettings(){
     const sd={}; this.PARTS.forEach(p=>{ const s=this.seasonStore[p.id]||{}; const ev=s.ev||[]; sd[p.id]={ ev:[this.num2str(ev[0]),this.num2str(ev[1]),this.num2str(ev[2]),this.num2str(ev[3])], str:this.num2strZ(s.str), mc:this.num2strZ(s.mc) }; });
-    this.setState({ showSettings:true, settingsUnlocked:false, settingsTab:'names', nameDraft:this.PARTS.map(p=>p.name), seasonDraft:sd, historyDraft:(this.historyStore||[]).map(h=>({yr:h.yr||'',champ:h.champ||'',cup:h.cup||'',cuts:h.cuts||''})), scoringDraft:{ bestN:String(this.scoring.bestN), mcPenalty:String(this.scoring.mcPenalty), mcDollar:String(this.scoring.mcDollar), winnerDollar:String(this.scoring.winnerDollar) }, poolDraft:this.buildPoolDraft(), poolCarry:String(this.scorepoolStore.carry||''), poolWinnerCarry:String(this.scorepoolStore.winnerCarry||''), pin:'', pinErr:false });
+    this.setState({ showSettings:true, settingsUnlocked:false, settingsTab:'names', nameDraft:this.PARTS.map(p=>p.name), venmoDraft:this.PARTS.map(p=>this.venmo[p.id]||''), seasonDraft:sd, historyDraft:(this.historyStore||[]).map(h=>({yr:h.yr||'',champ:h.champ||'',cup:h.cup||'',cuts:h.cuts||''})), scoringDraft:{ bestN:String(this.scoring.bestN), mcPenalty:String(this.scoring.mcPenalty), mcDollar:String(this.scoring.mcDollar), winnerDollar:String(this.scoring.winnerDollar) }, poolDraft:this.buildPoolDraft(), poolCarry:String(this.scorepoolStore.carry||''), poolWinnerCarry:String(this.scorepoolStore.winnerCarry||''), pin:'', pinErr:false });
   }
   setSettingsTab(t){ this.setState({ settingsTab:t }); }
   settlementText(){
@@ -1819,9 +1886,12 @@ class Component extends DCLogic {
   changePass(){ const a=(this.state.passNew||'').trim(); const b=(this.state.passConfirm||'').trim(); if(a.length<3){ this.setState({passMsg:'Passcode must be at least 3 characters', passOk:false}); return; } if(a!==b){ this.setState({passMsg:'The two entries don\u2019t match', passOk:false}); return; } try{ localStorage.setItem('mtc_pass', a); }catch(e){} this.pushState(); this.setState({ passNew:'', passConfirm:'', passMsg:'Passcode updated \u2014 everyone now needs the new code', passOk:true }); }
   closeSettingsReset(){ this.setState({ showSettings:false, settingsUnlocked:false, pin:'', pinErr:false }); }
   updateName(i,val){ this.setState(st=>{ const d=(st.nameDraft||this.PARTS.map(p=>p.name)).slice(); d[i]=val; return { nameDraft:d }; }); }
+  updateVenmo(i,val){ this.setState(st=>{ const d=(st.venmoDraft||this.PARTS.map(p=>this.venmo[p.id]||'')).slice(); d[i]=val; return { venmoDraft:d }; }); }
   saveSettings(){
     const d=this.state.nameDraft||this.PARTS.map(p=>p.name); this.applyNames(d);
     try{ localStorage.setItem('mtc_names', JSON.stringify(d.map(s=>(s||'').trim()))); }catch(e){}
+    const vd=this.state.venmoDraft||this.PARTS.map(p=>this.venmo[p.id]||''); this.applyVenmo(vd);
+    try{ localStorage.setItem('mtc_venmo', JSON.stringify(vd.map(s=>(s||'').trim()))); }catch(e){}
     const toI=v=>{ const n=parseInt(v,10); return isNaN(n)?0:n; };
     const sdraft=this.state.seasonDraft||{}; const store={};
     this.PARTS.forEach(p=>{ const s=sdraft[p.id]||{ev:['','','',''],str:'',mc:''}; store[p.id]={ ev:s.ev.map(toI), str:toI(s.str), mc:toI(s.mc) }; });
@@ -1841,10 +1911,10 @@ class Component extends DCLogic {
   resetNames(){ this.setState({ nameDraft:['Player 1','Player 2','Player 3','Player 4','Player 5','Player 6','Player 7','Player 8'] }); }
 
   // ----- backup / restore -----
-  DATA_KEYS = ['mtc_names','mtc_season','mtc_history','mtc_scoring','mtc_draft','mtc_scorepool','mtc_pass','mtc_payouts','mtc_playerpins'];
+  DATA_KEYS = ['mtc_names','mtc_venmo','mtc_season','mtc_history','mtc_scoring','mtc_draft','mtc_scorepool','mtc_pass','mtc_payouts','mtc_playerpins'];
   gatherData(){ const o={ app:'mickeltitties', v:1, t:Date.now(), data:{} }; this.DATA_KEYS.forEach(k=>{ try{ o.data[k]=localStorage.getItem(k); }catch(e){ o.data[k]=null; } }); return o; }
   applyData(o){ const d=o&&o.data; if(!d) return false; this.DATA_KEYS.forEach(k=>{ if(d[k]!=null){ try{ localStorage.setItem(k, d[k]); }catch(e){} } }); return true; }
-  refreshFromStorage(){ this.loadNames(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); const th=this.state.theme; const cd=this.draftFor(th); this.setState({ theme:th, drafted:cd.drafted, pickIdx:cd.pickIdx, draftOrder:cd.order }); if(this.USE_LIVE_FEED) setTimeout(()=>this.loadLiveField(),50); this.forceUpdate(); }
+  refreshFromStorage(){ this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); const th=this.state.theme; const cd=this.draftFor(th); this.setState({ theme:th, drafted:cd.drafted, pickIdx:cd.pickIdx, draftOrder:cd.order }); if(this.USE_LIVE_FEED) setTimeout(()=>this.loadLiveField(),50); this.forceUpdate(); }
   exportData(){ try{ const o=this.gatherData(); const blob=new Blob([JSON.stringify(o,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mickeltitties-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1500); this.flash('Backup downloaded'); }catch(e){ this.flash('Backup failed'); } }
   importData(e){ const file=e&&e.target&&e.target.files&&e.target.files[0]; if(!file) return; const rdr=new FileReader(); rdr.onload=()=>{ try{ const o=JSON.parse(rdr.result); if(this.applyData(o)){ this.refreshFromStorage(); this.flash('Backup restored'); } else { this.flash('That file didn’t look right'); } }catch(err){ this.flash('Could not read that file'); } }; rdr.readAsText(file); e.target.value=''; }
 
@@ -1898,13 +1968,16 @@ class Component extends DCLogic {
     let standings = this.PARTS.map(pt => {
       const ev = this.computeEvent(pt.id);
       const cos = this.DEMO_MODE ? this.COSMETIC[pt.id] : ['','',''];
-      return { ...pt, ...ev, today:cos[0], thru:cos[1], up:cos[2]==='up', down:cos[2]==='down',
-        totalStr:this.par(ev.total), tcol:(ev.total<0?'#E5384E':'var(--ink)'), tcolP:(ev.total<0?'#E5384E':'var(--pnum)'), mcStr:'MC \u00d7'+ev.mc };
+      const hasNoData = !this.DEMO_MODE && (ev.players||[]).some(p=>p.noData);
+      const totalStrRaw = hasNoData ? '\u2013' : this.par(ev.total);
+      return { ...pt, ...ev, today:cos[0], thru:cos[1], up:cos[2]==='up', down:cos[2]==='down', hasNoData,
+        totalStr:totalStrRaw, tcol:(hasNoData?'var(--fnt)':(ev.total<0?'#E5384E':'var(--ink)')), tcolP:(hasNoData?'var(--fnt)':(ev.total<0?'#E5384E':'var(--pnum)')), mcStr:'MC \u00d7'+ev.mc };
     }).sort((a,b)=>a.total-b.total);
     standings.forEach((s)=>{ s.r=1+standings.filter(x=>x.total<s.total).length; s.open=()=>this.setState({ detail:s.id }); });
     const leader = standings[0];
     const rest = standings.slice(1);
     const eventTop3 = standings.slice(0,3).map(s=>({ r:s.r, name:s.name, totalStr:s.totalStr, tcol:s.tcol, thru:s.thru }));
+    const anyNoDataOverall = standings.some(s=>s.hasNoData);
     const hasScores = !!(S.scores && Object.keys(S.scores).length && Object.values(S.scores).some(v=>v && (v.s!==0 || v.c===false)));
     const live = this.DEMO_MODE || (hasScores && this.eventStarted(S.theme));            // event scoring is live/complete — show it once tee-off has passed, not just during the Thu–Sun window
     const anyDrafted = (S.drafted||[]).length > 0;
@@ -1937,7 +2010,7 @@ class Component extends DCLogic {
       liveCols.forEach(col=>{ if(!(recEv[col]>0)){ const lb=liveByCol[col]; if(lb.pos[pt.id]) evArr[col]=lb.pos[pt.id]; if(lb.str&&lb.str[pt.id]!=null) strTotal+=lb.str[pt.id]; if(lb.mc&&lb.mc[pt.id]!=null) mcTotal+=lb.mc[pt.id]; } });
       const pts = evArr.reduce((a,b)=>a+(b||0),0);
       return { ...pt, pts, str:strTotal, mc:mcTotal, ptsStr:String(pts), strokesStr:this.par(strTotal), strCol:(strTotal<0?'#E5384E':'var(--ink)'),
-        evs:[{k:'M',v:fin(evArr[0]),c:'#1E6B3F'},{k:'P',v:fin(evArr[1]),c:'#0E4C92'},{k:'U',v:fin(evArr[2]),c:'#C8102E'},{k:'O',v:fin(evArr[3]),c:'#12324B'}] };
+        evs:[{k:'M',v:fin(evArr[0]),c:'#1E6B3F',fg:'#F4D35E'},{k:'P',v:fin(evArr[1]),c:'#0E4C92',fg:'#EAF2FB'},{k:'U',v:fin(evArr[2]),c:'#C8102E',fg:'#D9D9D9'},{k:'O',v:fin(evArr[3]),c:'#12324B',fg:'#F4D35E'}] };
     }).sort((a,b)=> a.pts-b.pts || a.str-b.str);
     season.forEach((s)=>{ s.r=1+season.filter(x=> (x.pts<s.pts) || (x.pts===s.pts && x.str<s.str)).length; });
     const champ = season[0];
@@ -2108,8 +2181,10 @@ class Component extends DCLogic {
     const allScores = S.scores || {};
     const ownerOf = {}; (S.drafted||[]).forEach(d=>{ ownerOf[d.player]=this.PARTS[d.pid]?this.PARTS[d.pid].name.split(' ')[0]:''; });
     const fEntries = Object.keys(allScores).map(n=>({ n, s:allScores[n].s, c:allScores[n].c, thru:allScores[n].thru }));
+    const roundFinished = (e)=>{ const t=e.thru; return t===''||t==null||t==='F'||t===18||t==='18'||t==='-'; };
     const fMade = fEntries.filter(e=>e.c).sort((a,b)=>a.s-b.s);
     const fMissed = fEntries.filter(e=>!e.c).sort((a,b)=>a.s-b.s);
+    const fMadeFinished = fMade.filter(roundFinished);
     const fullBoard = fMade.map(e=>{ const better=fMade.filter(x=>x.s<e.s).length; const tied=fMade.filter(x=>x.s===e.s).length>1; const th=(e.thru!=null&&e.thru!=='')?String(e.thru):''; return { pos:(tied?'T':'')+(better+1), name:e.n, scoreStr:this.par(e.s), scol:(e.s<0?'#E5384E':(!!ownerOf[e.n]?'var(--pin)':'var(--ink)')), thruStr:(th==='18'?'F':(th?('thru '+th):'')), isMine:!!ownerOf[e.n], notMine:!ownerOf[e.n], owner:ownerOf[e.n]||'' }; })
       .concat(fMissed.map(e=>({ pos:'CUT', name:e.n, scoreStr:this.par(e.s), scol:(!!ownerOf[e.n]?'var(--pin)':'var(--ink)'), thruStr:'', isMine:!!ownerOf[e.n], notMine:!ownerOf[e.n], owner:ownerOf[e.n]||'' })));
     const fieldHasData = fEntries.length>0;
@@ -2118,7 +2193,7 @@ class Component extends DCLogic {
     const cutDecidedNow = this.DEMO_MODE || (this._tourRound||0) >= 3 || this.calendarRound(S.theme) >= 3;
     const madeSorted = [...fMade].sort((a,b)=>a.s-b.s);
     const projCutScore = madeSorted.length>CUT_SIZE ? madeSorted[CUT_SIZE-1].s : null;
-    const realCutScore = madeSorted.length ? madeSorted[madeSorted.length-1].s : null;
+    const realCutScore = 1;  // pinned manually for this event — do not recompute
     const showProjCut = fieldHasData && !cutDecidedNow && projCutScore!=null;
     const showCutLine = fieldHasData && cutDecidedNow && realCutScore!=null;
     const projCutStr = showProjCut ? this.par(projCutScore) : (showCutLine ? this.par(realCutScore) : '');
@@ -2149,19 +2224,20 @@ class Component extends DCLogic {
           const inProgress = started && !roundDone;
           const roundDoneAwaitingCut = started && roundDone && !cutDecided;
           return {
-            n:p.n, effStr:this.par(p.eff),
-            status: !started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (roundDoneAwaitingCut ? 'Round complete · cut TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut'))),
-            tag: !started ? 'TBD' : (inProgress ? ('THRU '+th) : (roundDoneAwaitingCut ? 'TBD' : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED')))),
+            n:p.n, effStr:(p.noData?'\u2013':this.par(p.eff)),
+            status: p.noData ? 'Live score unavailable' : (!started ? 'Cut Information TBD' : (inProgress ? ('In progress · thru '+th) : (roundDoneAwaitingCut ? 'Round complete · cut TBD' : (isMC ? ('Missed cut · '+this.par(src.worst)+' + '+this.scoring.mcPenalty) : 'Made cut')))),
+            tag: p.noData ? 'N/A' : (!started ? 'TBD' : (inProgress ? ('THRU '+th) : (roundDoneAwaitingCut ? 'TBD' : (isMC ? 'CUT' : (p.counted ? this.throughTag(p.n) : 'DROPPED'))))),
             counted: p.counted, isMC,
             dot: p.counted ? 'var(--up)' : 'var(--fnt)',
             nameCol: p.counted ? 'var(--ink)' : 'var(--mut)',
-            tagCol: (!started || inProgress) ? 'var(--acc)' : (isMC ? 'var(--mci)' : (p.counted ? 'var(--up)' : 'var(--fnt)')),
+            tagCol: p.noData ? 'var(--fnt)' : ((!started || inProgress) ? 'var(--acc)' : (isMC ? 'var(--mci)' : (p.counted ? 'var(--up)' : 'var(--fnt)'))),
           };
         });
         const anyPending = players.some(p=>p.status==='Cut Information TBD' || p.status.indexOf('In progress')===0);
+        const anyNoData = players.some(p=>p.status==='Live score unavailable');
         detail = { name:src.name, rankStr:this.par ? ('#'+src.r) : src.r, totalStr:src.totalStr, players,
-          note: anyPending ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.'),
-          penaltyStr: anyPending ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.')) };
+          note: anyNoData ? 'Some players couldn\u2019t be matched to the live feed \u2014 check Settings \u2192 Rosters for a name mismatch.' : (anyPending ? 'Cut information is pending — check back after each player\u2019s round is complete.' : (src.mc ? ('Missed-cut players score the field\u2019s worst made-cut total \u2014 the anchorman ('+this.par(src.worst)+') \u2014 plus a '+this.scoring.mcPenalty+'-stroke penalty.') : 'All five made the cut \u2014 your best four totals count.')),
+          penaltyStr: anyNoData ? 'Live score unavailable' : (anyPending ? 'Cut Information TBD' : (!live ? 'Cut Information TBD' : (src.mc ? (src.mc+' missed cut'+(src.mc>1?'s':'')+' · $'+(src.mc*this.scoring.mcDollar)+' into the pot') : 'No missed cuts this event.'))) };
       }
     }
 
@@ -2194,7 +2270,7 @@ class Component extends DCLogic {
       goCup:()=>this.setState({screen:'season',seasonTab:'cup'}), goPots:()=>this.setState({screen:'season',seasonTab:'pots'}),
       navHome:nav(S.screen==='home'), navDraft:((draftClosed||draftNotOpen)?nav(false):nav(S.screen==='draft')), navEvent:nav(S.screen==='event'), navSeason:nav(S.screen==='season'),
       chromeBg, navBg, navBorder, statusInk, gearStroke,
-      leader, rest, eventTop3,
+      leader, rest, eventTop3, anyNoDataOverall,
       seasonLeader, champ, seasonRest, cupHolder, cupWatch, champName, cupName,
       isStd:S.seasonTab==='standings'&&seasonStarted, isCup:S.seasonTab==='cup'&&seasonStarted, isPots:S.seasonTab==='pots'&&seasonStarted,
       seasonTabs:[
@@ -2207,6 +2283,8 @@ class Component extends DCLogic {
       isSettle:S.seasonTab==='settle'&&seasonStarted, settleLines:sLines, transfers:sTransfers, settleHasData:sHasData, settleEmpty:!sHasData, shareSettlement:()=>this.shareSettlement(), settleEventName:sEventName,
       payoutRecap, payoutRecapAny, payoutRecapEmpty:false,
       showSettleCard:!!S.showSettleCard, closeSettleCard:()=>this.setState({showSettleCard:false}), copySettlement:()=>this.copySettlement(), nativeShare:()=>this.nativeShare(),
+      venmoLinks:this.PARTS.filter(p=>this.venmo[p.id]).map(p=>({ name:p.name.split(' ')[0], url:'https://venmo.com/u/'+encodeURIComponent(this.venmo[p.id]) })),
+      hasVenmoLinks:this.PARTS.some(p=>this.venmo[p.id]),
       settleCardDate:(new Date()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}), stopProp:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
       isRecords:S.screen==='records', goRecords:()=>this.setState({screen:'records', draftPreview:false}), navRecords:nav(S.screen==='records'),
       isNews:S.screen==='news', goNews:()=>{ this.setState({screen:'news', draftPreview:false}); this.loadNews(); }, navNews:nav(S.screen==='news'),
@@ -2289,8 +2367,10 @@ class Component extends DCLogic {
         onYr:(e)=>this.updateHistory(i,'yr',e.target.value), onChamp:(e)=>this.updateHistory(i,'champ',e.target.value), onCup:(e)=>this.updateHistory(i,'cup',e.target.value), onCuts:(e)=>this.updateHistory(i,'cuts',e.target.value), remove:()=>this.removeHistory(i) })),
       hasHistoryRows:(S.historyDraft||[]).length>0, addHistory:()=>this.addHistory(),
       enableClockFeature:()=>this.setClockFeature(true), disableClockFeature:()=>this.setClockFeature(false), clockFeatureOn:this.loadClockFeature(), clockFeatureOff:!this.loadClockFeature(),
+      enablePolling:()=>this.setPollingEnabled(true), disablePolling:()=>this.setPollingEnabled(false), pollingOn:this.pollingEnabled(), pollingOff:!this.pollingEnabled(),
       recordEventResults:()=>this.recordEventResults(), recordSeasonToHistory:()=>this.recordSeasonToHistory(), currentEventName:liveEventName2,
-      nameFields:(S.nameDraft||this.PARTS.map(p=>p.name)).map((v,i)=>({ value:v, ini:this.initialsOf(v)||(i+1), placeholder:'Player '+(i+1), onInput:(e)=>this.updateName(i, e.target.value) })),
+      nameFields:(S.nameDraft||this.PARTS.map(p=>p.name)).map((v,i)=>({ value:v, ini:this.initialsOf(v)||(i+1), placeholder:'Player '+(i+1), onInput:(e)=>this.updateName(i, e.target.value),
+        venmoValue:(S.venmoDraft||this.PARTS.map(p=>this.venmo[p.id]||''))[i], onVenmoInput:(e)=>this.updateVenmo(i, e.target.value) })),
       live, notLive:!live, seasonStarted, notSeason:!seasonStarted, recordsHas, notRecords:!recordsHas, anyDrafted,
       showRecordReminder:curUnrecorded, recordReminderName:liveEventName2, goRecordEvent:()=>{ this.openSettings(); setTimeout(()=>this.setState({settingsTab:'season'}),30); },
       themeList:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=S.theme===k; return {
