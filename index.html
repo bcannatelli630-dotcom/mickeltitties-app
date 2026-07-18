@@ -186,7 +186,8 @@ body{margin:0; background:#0a0a0a;}
           <div style="padding:14px 22px 0;">
             <div style="padding:10px 14px; background:var(--card); border:1px solid var(--line); border-radius:var(--rad); display:flex; align-items:center; justify-content:space-between;">
               <div style="display:flex; align-items:center; gap:8px;"><span style="width:7px; height:7px; border-radius:50%; background:var(--live); animation:mtPulse 1.4s infinite;"></span><span style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.06em; color:var(--mut);">{{liveStatusStr}}</span></div>
-              <button onClick="{{refreshNow}}" style="border:none; background:none; font-family:var(--fb); font-weight:700; font-size:12px; color:var(--acc); cursor:pointer;">Refresh now</button>
+              <!-- Refresh now temporarily disabled — re-enable by restoring onClick="{{refreshNow}}" and removing disabled/opacity below -->
+              <button disabled="true" style="border:none; background:none; font-family:var(--fb); font-weight:700; font-size:12px; color:var(--acc); opacity:.35; cursor:default;">Refresh now</button>
             </div>
           </div>
 
