@@ -1975,7 +1975,7 @@ class Component extends DCLogic {
     try{ localStorage.setItem('mtc_venmo', JSON.stringify(vd.map(s=>(s||'').trim()))); }catch(e){}
     const toI=v=>{ const n=parseInt(v,10); return isNaN(n)?0:n; };
     const sdraft=this.state.seasonDraft||{}; const store={};
-    this.PARTS.forEach(p=>{ const s=sdraft[p.id]||{ev:['','','',''],str:'',mc:''}; store[p.id]={ ev:s.ev.map(toI), str:toI(s.str), mc:toI(s.mc) }; });
+    this.PARTS.forEach(p=>{ const s=sdraft[p.id]||{ev:['','','',''],str:'',mc:''}; const prior=this.seasonStore[p.id]||{}; store[p.id]={ ev:s.ev.map(toI), str:toI(s.str), mc:toI(s.mc), evStr:prior.evStr, evMc:prior.evMc }; });
     this.seasonStore=store; try{ localStorage.setItem('mtc_season', JSON.stringify(store)); }catch(e){}
     const h=(this.state.historyDraft||[]).map(x=>({yr:(x.yr||'').trim(), champ:(x.champ||'').trim(), cup:(x.cup||'').trim(), cuts:(x.cuts||'').trim()})).filter(x=>x.yr||x.champ||x.cup||x.cuts);
     this.historyStore=h; try{ localStorage.setItem('mtc_history', JSON.stringify(h)); }catch(e){}
