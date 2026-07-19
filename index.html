@@ -1673,14 +1673,15 @@ class Component extends DCLogic {
   calendarRound(themeKey){
     const tbls=this._knownThu(); const now=new Date();
     const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let best=null;
     for(const y of [now.getFullYear()-1, now.getFullYear(), now.getFullYear()+1]){
       const tbl=tbls[y]; if(!tbl||!tbl[themeKey]) continue;
       const [m,d]=tbl[themeKey]; const thuMid=new Date(y,m,d);
       const days=Math.round((todayMid-thuMid)/86400000);
-      if(days<0 || days>3) continue;
-      return days+1;
+      if(days<0) continue;
+      if(best===null || days<best) best=days;  // closest past Thursday wins — never a stale prior year's event
     }
-    return 0;
+    return best===null ? 0 : Math.min(best+1,4);  // cap at round 4 — a finished event stays "final", never falls back to "not started"
   }
   // Human round/day label for the Event header, derived from the same calendar math (not hardcoded).
   roundLabel(themeKey, long){
