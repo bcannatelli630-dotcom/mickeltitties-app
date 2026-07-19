@@ -159,6 +159,22 @@ body{margin:0; background:#0a0a0a;}
       </sc-if>
 
       <!-- ================= EVENT ================= -->
+      <sc-if value="{{showChampBanner}}" hint-placeholder-val="{{false}}">
+        <div style="position:absolute; inset:0; z-index:60; background:rgba(8,12,20,.6); display:flex; align-items:center; justify-content:center; padding:24px;">
+          <div style="background:var(--bg); border-radius:var(--rad); padding:24px; max-width:320px; text-align:center;">
+            <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.1em; color:var(--acc);">{{champBannerYr}} SEASON CHAMPION</div>
+            <div style="font-family:var(--fd); font-size:26px; color:var(--ink); margin-top:8px; line-height:1.15;">Congratulations, {{champBannerName}}!</div>
+            <div style="font-family:var(--fb); font-weight:500; font-size:13px; color:var(--mut); margin-top:8px; line-height:1.5;">Lowest four-event point total in the pool. Cup's on the mantle.</div>
+            <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--line);">
+              <div style="font-family:var(--fd); font-style:italic; font-size:16px; color:var(--dn); line-height:1.3;">Big Sexy to Big Bust... A Patently Awful Performance</div>
+            </div>
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
+              <div style="font-family:var(--fd); font-style:italic; font-size:16px; color:var(--dn); line-height:1.3;">A Bottom of the Barrel, Big Sexy Sweep... Nice Job, Dickball Winner</div>
+            </div>
+            <button onClick="{{closeChampBanner}}" style="margin-top:18px; padding:11px 24px; border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:13px; border-radius:999px; cursor:pointer;">Close</button>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{showThruNotice}}" hint-placeholder-val="{{false}}">
         <div style="position:absolute; inset:0; z-index:50; background:rgba(8,12,20,.55); display:flex; align-items:center; justify-content:center; padding:24px;">
           <div style="background:var(--bg); border-radius:var(--rad); padding:22px; max-width:320px; text-align:center;">
@@ -1509,6 +1525,7 @@ class Component extends DCLogic {
   componentDidMount() {
     // Always default the displayed event to The Masters on load; switching during a session still works.
     this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.forceUpdate();
+    this.checkChampBanner();
     { const activeNow=this.currentlyLiveThemeKey(); if (activeNow && activeNow!==this.state.theme) this.setState({ theme: activeNow }); }
     if (this.state.drafted === null){
       if (this.DEMO_MODE){ this.setState({ drafted:this.initialDrafted(), field:this.initialField(), pickIdx:18, draftOrder:[0,1,2,3,4,5,6,7] }); }
@@ -1906,7 +1923,17 @@ class Component extends DCLogic {
     const h=(this.historyStore||[]).filter(x=>String(x.yr)!==yr).concat([{ yr, champ, cup, cuts }]);
     this.historyStore=h; try{ localStorage.setItem('mtc_history', JSON.stringify(h)); }catch(e){}
     this.setState({ historyDraft: h.map(x=>({ yr:x.yr||'', champ:x.champ||'', cup:x.cup||'', cuts:x.cuts||'' })) });
+    try{ localStorage.setItem('mtc_champ_banner', JSON.stringify({ yr, champ, cup, seen:false })); }catch(e){}
     this.pushState(); this.flash('Season '+yr+' recorded to history'); this.forceUpdate();
+    this.checkChampBanner();
+  }
+  checkChampBanner(){
+    let raw=null; try{ raw=JSON.parse(localStorage.getItem('mtc_champ_banner')||'null'); }catch(e){}
+    if (raw && !raw.seen) this.setState({ showChampBanner:true, champBannerData:raw });
+  }
+  closeChampBanner(){
+    const raw=this.state.champBannerData; if(raw){ try{ localStorage.setItem('mtc_champ_banner', JSON.stringify({...raw, seen:true})); }catch(e){} }
+    this.setState({ showChampBanner:false });
   }
   updateScoring(key,val){ this.setState(st=>({ scoringDraft:{...(st.scoringDraft||{}), [key]:val} })); }
   buildPoolDraft(){ const gp=(this.scorepoolStore.guesses||{})[this.state.theme]||{}; const d={}; this.PARTS.forEach(p=>{ const g=gp[p.id]||{}; d[p.id]={ in:!!g.in, guess:(g.guess!=null?String(g.guess):'') }; }); return d; }
@@ -2387,6 +2414,9 @@ class Component extends DCLogic {
       toggleSound:()=>this.setState(st=>({soundOn:!st.soundOn})), soundLabel:S.soundOn?'On':'Off', showToast:!!S.toast, toastMsg:S.toast,
       showDetail:S.detail!==null, detail, closeDetail:()=>this.setState({detail:null}),
       showThruNotice:!!S.showThruNotice, closeThruNotice:()=>{ this._thruNoticeShown=true; this.setState({showThruNotice:false}); },
+      showChampBanner:!!S.showChampBanner, closeChampBanner:()=>this.closeChampBanner(),
+      champBannerName:(S.champBannerData?S.champBannerData.champ:''), champBannerYr:(S.champBannerData?S.champBannerData.yr:''),
+      champBannerCupFirst:(S.champBannerData?String(S.champBannerData.cup||'').split(' ')[0]:''),
       showTheme:S.showTheme, openTheme:()=>this.setState({showTheme:true}), closeTheme:()=>this.setState({showTheme:false}),
       showSettings:S.showSettings, openSettings:()=>this.openSettings(), closeSettings:()=>this.closeSettingsReset(), stop:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
       saveSettings:()=>this.saveSettings(), resetNames:()=>this.resetNames(),
