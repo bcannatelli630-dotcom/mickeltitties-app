@@ -159,6 +159,15 @@ body{margin:0; background:#0a0a0a;}
       </sc-if>
 
       <!-- ================= EVENT ================= -->
+      <sc-if value="{{showThruNotice}}" hint-placeholder-val="{{false}}">
+        <div style="position:absolute; inset:0; z-index:50; background:rgba(8,12,20,.55); display:flex; align-items:center; justify-content:center; padding:24px;">
+          <div style="background:var(--bg); border-radius:var(--rad); padding:22px; max-width:320px; text-align:center;">
+            <div style="font-family:var(--fd); font-size:20px; color:var(--ink); margin-bottom:10px;">Heads up</div>
+            <div style="font-family:var(--fb); font-weight:500; font-size:13px; color:var(--mut); line-height:1.5;">Live scoring is working, but Thru Hole notation is currently down. Our experienced team of roofing professionals is aware and working to correct the problem.</div>
+            <button onClick="{{closeThruNotice}}" style="margin-top:16px; padding:11px 24px; border:none; background:var(--acc); color:var(--aci); font-family:var(--fb); font-weight:700; font-size:13px; border-radius:999px; cursor:pointer;">Got it</button>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{isEvent}}" hint-placeholder-val="{{false}}">
         <div style="animation:mtUp .35s ease both;">
           <div style="padding:6px 22px 0;">
@@ -2307,7 +2316,7 @@ class Component extends DCLogic {
       t, liveEventName, liveEventName2, seasonTag, eventDates, seasonTitle:(YEAR + ' Season'), seasonHeadSub:(YEAR + ' SEASON · OVERALL TO DATE'), clockTime:new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Los_Angeles'}),
       hasNextEvent:!!nextEv, nextEventName:(nextEv?nextEv.name:''), nextEventLabel:(nextEv?nextEv.label:''), eventRound:this.roundLabel(S.theme,false), eventRoundLong:this.roundLabel(S.theme,true),
       isHome:S.screen==='home', isEvent:S.screen==='event'&&S.eventChosen, isEventPicker:S.screen==='event'&&!S.eventChosen, isDraft:S.screen==='draft', isSeason:S.screen==='season',
-      goHome:()=>this.setState({screen:'home', draftPreview:false}), goEvent:()=>this.setState({screen:'event', eventChosen:false, draftPreview:false}),
+      goHome:()=>this.setState({screen:'home', draftPreview:false}), goEvent:()=>this.setState({screen:'event', eventChosen:false, draftPreview:false, showThruNotice:!this._thruNoticeShown}),
       backToEventPicker:()=>this.setState({eventChosen:false}),
       eventCards:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=this.eventLive(k); return { name:th.label, dates:(sched[k]?sched[k]+', '+YEAR:th.desc), c1:th.c1, c2:th.c2, c3:th.c3, active, idle:!active, border:active?'var(--acc)':'var(--line)', pick:()=>{ this.setTheme(k); this.setState({screen:'event', eventChosen:true}); } }; }),
       goDraft:()=>{ const k=this.nextEventKey(); this.setTheme(k); this.setState({screen:'draft', draftPreview:false}); }, goSeason:()=>this.setState({screen:'season',seasonTab:'standings', draftPreview:false}),
@@ -2377,6 +2386,7 @@ class Component extends DCLogic {
       updatedStr:('Updated '+this.rel(S.lastUpdated)).toUpperCase(), liveStatusStr:'AUTO-REFRESH · 5 MIN', refreshNow:()=>this.poll(),
       toggleSound:()=>this.setState(st=>({soundOn:!st.soundOn})), soundLabel:S.soundOn?'On':'Off', showToast:!!S.toast, toastMsg:S.toast,
       showDetail:S.detail!==null, detail, closeDetail:()=>this.setState({detail:null}),
+      showThruNotice:!!S.showThruNotice, closeThruNotice:()=>{ this._thruNoticeShown=true; this.setState({showThruNotice:false}); },
       showTheme:S.showTheme, openTheme:()=>this.setState({showTheme:true}), closeTheme:()=>this.setState({showTheme:false}),
       showSettings:S.showSettings, openSettings:()=>this.openSettings(), closeSettings:()=>this.closeSettingsReset(), stop:(e)=>{ if(e&&e.stopPropagation) e.stopPropagation(); },
       saveSettings:()=>this.saveSettings(), resetNames:()=>this.resetNames(),
