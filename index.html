@@ -786,12 +786,28 @@ body{margin:0; background:#0a0a0a;}
           <div style="padding:20px 22px 0;">
             <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.09em; color:var(--mut); margin-bottom:2px;">PAST SEASONS</div>
             <sc-for list="{{pastSeasons}}" as="s" hint-placeholder-count="5">
-              <div style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--line);">
+              <div onClick="{{s.toggle}}" style="display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer;">
                 <span style="font-family:var(--fn); font-size:22px; color:var(--fnt); width:52px;">{{s.yr}}</span>
-                <div style="min-width:0; max-width:42%;"><div style="font-family:var(--fb); font-weight:600; font-size:15px; color:var(--up); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{s.champ}}</div><div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--mut); margin-top:2px;">Champion</div></div>
-                <div style="flex:1; text-align:left;"><div style="font-family:var(--fb); font-weight:600; font-size:13px; color:var(--dn); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{s.cup}}</div><div style="font-family:var(--fb); font-weight:500; font-size:10px; letter-spacing:.05em; color:var(--fnt); margin-top:2px;">CUP</div></div>
-                <div style="width:72px; text-align:right;"><div style="font-family:var(--fb); font-weight:600; font-size:13px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{s.cuts}}</div><div style="font-family:var(--fb); font-weight:500; font-size:10px; letter-spacing:.05em; color:var(--fnt); margin-top:2px;">CUTS</div></div>
+                <div style="width:96px; min-width:0;"><div style="font-family:var(--fb); font-weight:600; font-size:15px; color:var(--up); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{s.champ}}</div><div style="font-family:var(--fb); font-weight:500; font-size:11px; color:var(--mut); margin-top:2px;">Champion</div></div>
+                <div style="width:96px; min-width:0; margin-left:10px;"><div style="font-family:var(--fb); font-weight:600; font-size:13px; color:var(--dn); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{s.cup}}</div><div style="font-family:var(--fb); font-weight:500; font-size:10px; letter-spacing:.05em; color:var(--fnt); margin-top:2px;">CUP</div></div>
+                <div style="flex:1; text-align:right; min-width:0;"><div style="font-family:var(--fb); font-weight:600; font-size:13px; color:var(--mut); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{s.cuts}}</div><div style="font-family:var(--fb); font-weight:500; font-size:10px; letter-spacing:.05em; color:var(--fnt); margin-top:2px;">CUTS</div></div>
               </div>
+              <sc-if value="{{s.isOpen}}" hint-placeholder-val="{{false}}">
+                <div style="display:flex; gap:8px; padding:10px 0 14px;">
+                  <sc-for list="{{s.majors}}" as="mj" hint-placeholder-count="4">
+                    <sc-if value="{{mj.has}}" hint-placeholder-val="{{false}}">
+                      <div onClick="{{mj.open}}" style="flex:1; text-align:center; padding:10px 4px; border-radius:8px; background:{{mj.bg}}; cursor:pointer;">
+                        <div style="font-family:var(--fb); font-weight:700; font-size:11px; color:{{mj.fg}};">{{mj.k}}</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{mj.none}}" hint-placeholder-val="{{true}}">
+                      <div style="flex:1; text-align:center; padding:10px 4px; border-radius:8px; background:var(--pan); opacity:.35;">
+                        <div style="font-family:var(--fb); font-weight:700; font-size:11px; color:var(--mut);">{{mj.k}}</div>
+                      </div>
+                    </sc-if>
+                  </sc-for>
+                </div>
+              </sc-if>
             </sc-for>
           </div>
           <div style="padding:20px 22px 0;">
@@ -1517,7 +1533,7 @@ class Component extends DCLogic {
 
   componentDidMount() {
     // Always default the displayed event to The Masters on load; switching during a session still works.
-    this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.forceUpdate();
+    this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.loadArchive(); this.forceUpdate();
     this.checkChampBanner();
     { const activeNow=this.currentlyLiveThemeKey(); if (activeNow && activeNow!==this.state.theme) this.setState({ theme: activeNow }); }
     if (this.state.drafted === null){
@@ -1904,8 +1920,21 @@ class Component extends DCLogic {
     const sd={}; this.PARTS.forEach(p=>{ const s=store[p.id]||{}; const ev=s.ev||[]; sd[p.id]={ ev:[this.num2str(ev[0]),this.num2str(ev[1]),this.num2str(ev[2]),this.num2str(ev[3])], str:this.num2strZ(s.str), mc:this.num2strZ(s.mc) }; });
     this.setState({ seasonDraft:sd });
     this.capturePayout();
+    this.archiveEvent();
     this.pushState(); this.flash('Event results recorded'); this.forceUpdate();
   }
+  // Snapshot this event's full roster/scoring into the Records archive (year + event -> standings + per-player detail).
+  archiveEvent(){
+    const yr=String(new Date().getFullYear()); const key=this.state.theme;
+    const rows=this.PARTS.map(p=>{ const ev=this.computeEvent(p.id); return { pid:p.id, name:p.name, total:ev.total, totalStr:this.par(ev.total), mc:ev.mc,
+      players:ev.players.map(pl=>({ n:pl.n, s:pl.s, sStr:this.par(pl.s), c:pl.c, counted:pl.counted, status:pl.c?'Made cut':'Missed cut' })) }; });
+    rows.sort((a,b)=>a.total-b.total);
+    rows.forEach((r,i)=>{ r.rank=1+rows.filter(x=>x.total<r.total).length; });
+    this.archiveStore=this.archiveStore||{}; this.archiveStore[yr]=this.archiveStore[yr]||{};
+    this.archiveStore[yr][key]={ eventName:this.currentEventNm(), rows };
+    try{ localStorage.setItem('mtc_archive', JSON.stringify(this.archiveStore)); }catch(e){}
+  }
+  loadArchive(){ try{ const raw=localStorage.getItem('mtc_archive'); this.archiveStore=raw?JSON.parse(raw):{}; }catch(e){ this.archiveStore={}; } }
   // Auto-record the whole season into the record book (Champion / Cup / Cuts).
   recordSeasonToHistory(){
     const rows = this.PARTS.map(p=>{ const s=this.seasonStore[p.id]||{ev:[0,0,0,0],str:0,mc:0}; const pts=(s.ev||[]).reduce((a,b)=>a+(b||0),0); return { name:p.name, pts, str:s.str||0, mc:s.mc||0 }; });
@@ -1985,10 +2014,11 @@ class Component extends DCLogic {
   resetNames(){ this.setState({ nameDraft:['Player 1','Player 2','Player 3','Player 4','Player 5','Player 6','Player 7','Player 8'] }); }
 
   // ----- backup / restore -----
-  DATA_KEYS = ['mtc_names','mtc_venmo','mtc_season','mtc_history','mtc_scoring','mtc_draft','mtc_scorepool','mtc_pass','mtc_payouts','mtc_playerpins'];
+  archiveStore = {};  // { year: { masters:{eventName,rows}, pga:{...}, ... } } — full past-event archive for Records
+  DATA_KEYS = ['mtc_names','mtc_venmo','mtc_season','mtc_history','mtc_scoring','mtc_draft','mtc_scorepool','mtc_pass','mtc_payouts','mtc_playerpins','mtc_archive'];
   gatherData(){ const o={ app:'mickeltitties', v:1, t:Date.now(), data:{} }; this.DATA_KEYS.forEach(k=>{ try{ o.data[k]=localStorage.getItem(k); }catch(e){ o.data[k]=null; } }); return o; }
   applyData(o){ const d=o&&o.data; if(!d) return false; this.DATA_KEYS.forEach(k=>{ if(d[k]!=null){ try{ localStorage.setItem(k, d[k]); }catch(e){} } }); return true; }
-  refreshFromStorage(){ this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); const th=this.state.theme; const cd=this.draftFor(th); this.setState({ theme:th, drafted:cd.drafted, pickIdx:cd.pickIdx, draftOrder:cd.order }); if(this.USE_LIVE_FEED) setTimeout(()=>this.loadLiveField(),50); this.forceUpdate(); }
+  refreshFromStorage(){ this.loadNames(); this.loadVenmo(); this.loadSeason(); this.loadHistory(); this.loadScoring(); this.loadScorePool(); this.loadLiveCache(); this.loadPayouts(); this.loadArchive(); const th=this.state.theme; const cd=this.draftFor(th); this.setState({ theme:th, drafted:cd.drafted, pickIdx:cd.pickIdx, draftOrder:cd.order }); if(this.USE_LIVE_FEED) setTimeout(()=>this.loadLiveField(),50); this.forceUpdate(); }
   exportData(){ try{ const o=this.gatherData(); const blob=new Blob([JSON.stringify(o,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mickeltitties-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1500); this.flash('Backup downloaded'); }catch(e){ this.flash('Backup failed'); } }
   importData(e){ const file=e&&e.target&&e.target.files&&e.target.files[0]; if(!file) return; const rdr=new FileReader(); rdr.onload=()=>{ try{ const o=JSON.parse(rdr.result); if(this.applyData(o)){ this.refreshFromStorage(); this.flash('Backup restored'); } else { this.flash('That file didn’t look right'); } }catch(err){ this.flash('Could not read that file'); } }; rdr.readAsText(file); e.target.value=''; }
 
@@ -2214,6 +2244,21 @@ class Component extends DCLogic {
           ? { name:this.tieWord(titleLeaders.length)+' tie', titlesStr:String(maxTitles) }
           : { name:titleLeaders[0].name, titlesStr:String(maxTitles) });
     const recordsHas = PAST.length > 0;
+    const MJ_BG = { M:'#1E6B3F', P:'#0E4C92', U:'#C8102E', O:'#12324B' };
+    const MJ_FG = { M:'#F4D35E', P:'#EAF2FB', U:'#D9D9D9', O:'#F4D35E' };
+    const MJ_KEY = { M:'masters', P:'pga', U:'usopen', O:'open' };
+    const archOpenYr = S.archiveOpenYr || '';
+    const pastSeasonsUI = PAST.map(s=>({ ...s, isOpen: archOpenYr===s.yr,
+      toggle: ()=>this.setState({ archiveOpenYr: archOpenYr===s.yr ? '' : s.yr }),
+      majors: ['M','P','U','O'].map(k=>{ const has=!!(this.archiveStore[s.yr] && this.archiveStore[s.yr][MJ_KEY[k]]);
+        return { k, bg:MJ_BG[k], fg:MJ_FG[k], has, none:!has,
+          open: ()=>this.setState({ showArchiveEvent:true, archiveYr:s.yr, archiveEventKey:MJ_KEY[k], showArchiveRoster:false }) }; }) }));
+    const archYr=S.archiveYr, archKey=S.archiveEventKey;
+    const archData = (archYr && archKey && this.archiveStore[archYr]) ? this.archiveStore[archYr][archKey] : null;
+    const archiveRows = archData ? archData.rows.map(r=>({ rank:r.rank, name:r.name, totalStr:r.totalStr, col:(r.total<0?'#C8102E':'var(--ink)'), hasMc:r.mc>0, mc:r.mc,
+      open: ()=>this.setState({ showArchiveRoster:true, archiveRosterPid:r.pid }) })) : [];
+    const archRosterPid = S.archiveRosterPid;
+    const archRosterRow = archData ? archData.rows.find(r=>r.pid===archRosterPid) : null;
 
     // ---- draft ----
     const ord = S.draftOrder || [0,1,2,3,4,5,6,7];
@@ -2367,7 +2412,13 @@ class Component extends DCLogic {
       newsRows:(S.newsItems||[]), newsLoading:!!S.newsLoading, newsEmpty:(!S.newsLoading && !S.newsErr && !(S.newsItems||[]).length), newsErr:!!S.newsErr, newsEventName:liveEventName2,
       poolWireRows:this.poolWire(),
       openDraftPreview:()=>this.setState({screen:'draft', draftPreview:true, showSettings:false}),
-      pastSeasons:PAST, allTime, recordTop,
+      pastSeasons:pastSeasonsUI, allTime, recordTop,
+      showArchiveEvent:!!S.showArchiveEvent, closeArchiveEvent:()=>this.setState({showArchiveEvent:false}),
+      archiveYr:archYr, archiveEventName:(archData?archData.eventName:''), archiveRows,
+      showArchiveRoster:!!S.showArchiveRoster, closeArchiveRoster:()=>this.setState({showArchiveRoster:false}),
+      archiveRosterName:(archRosterRow?archRosterRow.name:''), archiveRosterRank:(archRosterRow?archRosterRow.rank:''),
+      archiveRosterTotal:(archRosterRow?archRosterRow.totalStr:''),
+      archiveRosterPlayers:(archRosterRow?archRosterRow.players.map(pl=>({ n:pl.n, sStr:pl.sStr, status:pl.status, dot:(pl.counted?'var(--up)':'var(--fnt)'), nameCol:(pl.counted?'var(--ink)':'var(--mut)') })):[]),
       winnerPotStr:(pv?pv.winnerPotStr:winnerPotStr), winnerTaker:(pv?pv.winnerTaker:winOwner), winnerGolfer:(pv?pv.winnerGolfer:winGolfer), winnerScoreStr:(pv?pv.winnerScoreStr:this.par(winScore)), winnerTaken:(pv?pv.winnerTaken:winnerTaken), noWinnerYet:(pv?pv.noWinnerYet:!winnerTaken),
       spPotStr:(pv?pv.spPotStr:spPotStr), spWinStr:(pv?pv.spWinStr:spWinStr), spRows:(pv?pv.spRows:spRows), spHas:(pv?pv.spHas:spHas), spNote:(pv?pv.spNote:spNote), spNoEntrants:(pv?pv.spNoEntrants:!spHas),
       winnerNote:(pv?pv.winnerNote:winnerNoteDyn), potsEventName:(pv?pv.eventName:liveEventName2),
