@@ -745,7 +745,9 @@ body{margin:0; background:#0a0a0a;}
             <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px;">HEADLINES</div>
             <sc-for list="{{newsRows}}" as="n" hint-placeholder-count="5">
               <div onClick="{{n.open}}" style="display:flex; gap:12px; padding:14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--acc); border-radius:var(--rad); cursor:pointer;">
-                <img src="{{n.favicon}}" style="width:28px; height:28px; border-radius:7px; flex:none; margin-top:2px; background:var(--line); object-fit:contain;" onerror="this.style.visibility='hidden'" />
+                <sc-if value="{{n.favicon}}" hint-placeholder-val="{{false}}">
+                  <img src="{{n.favicon}}" style="width:28px; height:28px; border-radius:7px; flex:none; margin-top:2px; background:var(--line); object-fit:contain;" onerror="this.style.visibility='hidden'" />
+                </sc-if>
                 <div style="flex:1; min-width:0;">
                   <div style="font-family:var(--fb); font-weight:700; font-size:14px; color:var(--ink); line-height:1.35;">{{n.title}}</div>
                   <div style="display:flex; align-items:center; gap:6px; margin-top:6px;">
