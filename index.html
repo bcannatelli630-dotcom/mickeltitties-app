@@ -2201,7 +2201,7 @@ class Component extends DCLogic {
       masters:[ {label:'OVERALL CHAMPION',who:nm(5),amt:'$25'}, {label:'OUTRIGHT WINNER',who:nm(5)+' · Rory McIlroy',amt:'$25'}, {label:'WINNING-SCORE POOL',who:nm(0),amt:'$10'} ],
       pga:[ {label:'OVERALL CHAMPION',who:nm(5),amt:'$25'}, {label:'OUTRIGHT WINNER',who:'No pick · carried to U.S. Open',amt:'—'}, {label:'WINNING-SCORE POOL',who:'No Pick',amt:'—'} ],
       usopen:[ {label:'OVERALL CHAMPION',who:nm(7),amt:'$25'}, {label:'OUTRIGHT WINNER',who:nm(4)+' · Wyndham Clark (incl. $25 PGA carryover)',amt:'$50'}, {label:'WINNING-SCORE POOL',who:nm(3),amt:'$10'} ],
-      open:[ {label:'OVERALL CHAMPION',who:'Condor',amt:'$25'}, {label:'OUTRIGHT WINNER',who:'Nobody drafted the champion \u2014 carries to next event',amt:'—'}, {label:'WINNING-SCORE POOL',who:'Monte \u2014 guessed \u221210',amt:'$25'} ]
+      open:[ {label:'OVERALL CHAMPION',who:'Condor',amt:'$25'}, {label:'OUTRIGHT WINNER',who:'Nobody drafted the champion',amt:'—'}, {label:'WINNING-SCORE POOL',who:'Monte \u2014 guessed \u221210',amt:'$25'} ]
     };})(this.PARTS);
     const payoutRecap=evOrder.map(k=>{ const sp=null;
       if(!sp){ const rows=PAYDATA[k]||[]; return { name:EVN[k], none:rows.length===0, has:rows.length>0, rows }; }
