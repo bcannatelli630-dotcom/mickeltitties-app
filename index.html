@@ -2031,11 +2031,13 @@ class Component extends DCLogic {
     const EVENTS = { masters:'The Masters', open:'The Open', pga:'PGA Championship', usopen:'U.S. Open' };
     const ev = EVENTS[S.theme] || 'U.S. Open';
     const YEAR = new Date().getFullYear();
+    // Once this year's Open (the last major) has finished, the Event picker shows next year's schedule.
+    const seasonYearForDisplay = (()=>{ const tbl=this._knownThu()[YEAR]; if(!tbl||!tbl.open) return YEAR; const [m,d]=tbl.open; const openSun=new Date(YEAR,m,d+3,23,59,0); return new Date()>openSun ? YEAR+1 : YEAR; })();
     const liveEventName = ev.toUpperCase();
     const liveEventName2 = ev;
     const seasonTag = YEAR + ' SEASON · ' + ev.toUpperCase();
-    const sched = this.majorDates(YEAR);
-    const eventDates = (sched[S.theme] || '') + ', ' + YEAR;
+    const sched = this.majorDates(seasonYearForDisplay);
+    const eventDates = (sched[S.theme] || '') + ', ' + seasonYearForDisplay;
     const nextEv = this.nextEventInfo();
 
     // ---- event standings ----
@@ -2339,7 +2341,7 @@ class Component extends DCLogic {
       isHome:S.screen==='home', isEvent:S.screen==='event'&&S.eventChosen, isEventPicker:S.screen==='event'&&!S.eventChosen, isDraft:S.screen==='draft', isSeason:S.screen==='season',
       goHome:()=>this.setState({screen:'home', draftPreview:false}), goEvent:()=>this.setState({screen:'event', eventChosen:false, draftPreview:false}),
       backToEventPicker:()=>this.setState({eventChosen:false}),
-      eventCards:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=this.eventLive(k); return { name:th.label, dates:(sched[k]?sched[k]+', '+YEAR:th.desc), course:this.COURSES[k], c1:th.c1, c2:th.c2, c3:th.c3, active, idle:!active, border:active?'var(--acc)':'var(--line)', pick:()=>{ this.setTheme(k); this.setState({screen:'event', eventChosen:true}); } }; }),
+      eventCards:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=this.eventLive(k); return { name:th.label, dates:(sched[k]?sched[k]+', '+seasonYearForDisplay:th.desc), course:this.COURSES[k], c1:th.c1, c2:th.c2, c3:th.c3, active, idle:!active, border:active?'var(--acc)':'var(--line)', pick:()=>{ this.setTheme(k); this.setState({screen:'event', eventChosen:true}); } }; }),
       goDraft:()=>{ const k=this.nextEventKey(); this.setTheme(k); this.setState({screen:'draft', draftPreview:false}); }, goSeason:()=>this.setState({screen:'season',seasonTab:'standings', draftPreview:false}),
       goCup:()=>this.setState({screen:'season',seasonTab:'cup'}), goPots:()=>this.setState({screen:'season',seasonTab:'pots'}),
       navHome:nav(S.screen==='home'), navDraft:((draftClosed||draftNotOpen)?nav(false):nav(S.screen==='draft')), navEvent:nav(S.screen==='event'), navSeason:nav(S.screen==='season'),
@@ -2452,7 +2454,7 @@ class Component extends DCLogic {
       live, notLive:!live, seasonStarted, notSeason:!seasonStarted, recordsHas, notRecords:!recordsHas, anyDrafted,
       showRecordReminder:curUnrecorded, recordReminderName:liveEventName2, goRecordEvent:()=>{ this.openSettings(); setTimeout(()=>this.setState({settingsTab:'season'}),30); },
       themeList:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=S.theme===k; return {
-        key:k, label:th.label, desc:th.desc, dates:(sched[k]? sched[k]+', '+YEAR : th.desc), active, idle:!active,
+        key:k, label:th.label, desc:th.desc, dates:(sched[k]? sched[k]+', '+seasonYearForDisplay : th.desc), active, idle:!active,
         border:active?'var(--acc)':'var(--line)', c1:th.c1, c2:th.c2, c3:th.c3,
         onClick:()=>this.setTheme(k) }; }),
     };
