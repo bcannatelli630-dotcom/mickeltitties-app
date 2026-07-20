@@ -149,6 +149,7 @@ body{margin:0; background:#0a0a0a;}
                 <div style="flex:1;">
                   <div style="font-family:var(--fd); font-size:21px; color:var(--ink); line-height:1;">{{ev.name}}</div>
                   <div style="font-family:var(--fb); font-weight:600; font-size:12px; color:var(--mut); margin-top:5px;">{{ev.dates}}</div>
+                  <div style="font-family:var(--fb); font-weight:500; font-size:12px; color:var(--fnt); margin-top:2px;">{{ev.course}}</div>
                 </div>
                 <sc-if value="{{ev.active}}" hint-placeholder-val="{{false}}"><span style="font-family:var(--fb); font-weight:700; font-size:13px; color:var(--acc);">✓ Active</span></sc-if>
                 <sc-if value="{{ev.idle}}" hint-placeholder-val="{{true}}"><span style="font-family:var(--fb); font-weight:700; font-size:19px; color:var(--fnt);">→</span></sc-if>
@@ -1217,9 +1218,10 @@ class Component extends DCLogic {
     drafted: null, field: null, draftOrder: null, rosterEdit: null, rosterSearch: '', eventView: 'pool', draftView: 'draft',
   };
 
+  COURSES = { masters:'Augusta National Golf Club', pga:'PGA Frisco', usopen:'Pebble Beach Golf Links', open:'The Old Course at St Andrews' };
   THEMES = {
     masters: {
-      label: 'Augusta', desc: 'Masters greens & soft yellow over off-white',
+      label: 'The Masters', desc: 'Masters greens & soft yellow over off-white',
       bg:'#F8F7F1', ink:'#0A5135', mut:'#7A8A72', fnt:'#A7B09A', line:'#D8D2BF', card:'#FFFFFF',
       pan:'#0A4D33', pin:'#F4F0E4', psub:'#B6C9B1', acc:'#0A5135', aci:'#F4F0E4', pnum:'#F4D35E',
       up:'#1E7A4D', dn:'#C99A00', mci:'#9A7A00', mcl:'#D9B44A', live:'#EFC21A', livei:'#0A5135',
@@ -1584,7 +1586,7 @@ class Component extends DCLogic {
   majorDates(year){
     const known = {
       2026:{ masters:'Apr 9\u201312', pga:'May 14\u201317', usopen:'Jun 18\u201321', open:'Jul 16\u201319' },
-      2027:{ masters:'Apr 8\u201311', pga:'May 13\u201316', usopen:'Jun 17\u201320', open:'Jul 15\u201318' },
+      2027:{ masters:'Apr 8\u201311', pga:'May 20\u201323', usopen:'Jun 17\u201320', open:'Jul 15\u201318' },
       2028:{ masters:'Apr 6\u20139',  pga:'May 18\u201321', usopen:'Jun 15\u201318', open:'Jul 20\u201323' },
     };
     if(known[year]) return known[year];
@@ -1598,7 +1600,7 @@ class Component extends DCLogic {
   majorOpenDate(year, theme){
     const knownThu = {
       2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] },
-      2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] },
+      2027:{ masters:[3,8], pga:[4,20], usopen:[5,17], open:[6,15] },
       2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] },
     };
     let thu;
@@ -1612,7 +1614,7 @@ class Component extends DCLogic {
   nextEventInfo(){
     const names={ masters:'The Masters', pga:'PGA Championship', usopen:'U.S. Open', open:'The Open' };
     const order=['masters','pga','usopen','open'];
-    const knownThu={ 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } };
+    const knownThu={ 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,20], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } };
     const now=new Date(); const yr=now.getFullYear(); const yrs=[yr,yr+1];
     for(const y of yrs){ const tbl=knownThu[y]; if(!tbl) continue;
       for(const k of order){ if(!tbl[k]) continue; const [m,d]=tbl[k];
@@ -1627,7 +1629,7 @@ class Component extends DCLogic {
     return null;
   }
 
-  _knownThu(){ return { 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,13], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } }; }
+  _knownThu(){ return { 2026:{ masters:[3,9], pga:[4,14], usopen:[5,18], open:[6,16] }, 2027:{ masters:[3,8], pga:[4,20], usopen:[5,17], open:[6,15] }, 2028:{ masters:[3,6], pga:[4,18], usopen:[5,15], open:[6,20] } }; }
   // Is this major live right now? (first group tees off Thursday AM → final standings ~Sunday night)
   currentlyLiveThemeKey(){
     const tbls=this._knownThu(); const now=new Date();
@@ -2337,7 +2339,7 @@ class Component extends DCLogic {
       isHome:S.screen==='home', isEvent:S.screen==='event'&&S.eventChosen, isEventPicker:S.screen==='event'&&!S.eventChosen, isDraft:S.screen==='draft', isSeason:S.screen==='season',
       goHome:()=>this.setState({screen:'home', draftPreview:false}), goEvent:()=>this.setState({screen:'event', eventChosen:false, draftPreview:false}),
       backToEventPicker:()=>this.setState({eventChosen:false}),
-      eventCards:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=this.eventLive(k); return { name:th.label, dates:(sched[k]?sched[k]+', '+YEAR:th.desc), c1:th.c1, c2:th.c2, c3:th.c3, active, idle:!active, border:active?'var(--acc)':'var(--line)', pick:()=>{ this.setTheme(k); this.setState({screen:'event', eventChosen:true}); } }; }),
+      eventCards:Object.keys(this.THEMES).map(k=>{ const th=this.THEMES[k]; const active=this.eventLive(k); return { name:th.label, dates:(sched[k]?sched[k]+', '+YEAR:th.desc), course:this.COURSES[k], c1:th.c1, c2:th.c2, c3:th.c3, active, idle:!active, border:active?'var(--acc)':'var(--line)', pick:()=>{ this.setTheme(k); this.setState({screen:'event', eventChosen:true}); } }; }),
       goDraft:()=>{ const k=this.nextEventKey(); this.setTheme(k); this.setState({screen:'draft', draftPreview:false}); }, goSeason:()=>this.setState({screen:'season',seasonTab:'standings', draftPreview:false}),
       goCup:()=>this.setState({screen:'season',seasonTab:'cup'}), goPots:()=>this.setState({screen:'season',seasonTab:'pots'}),
       navHome:nav(S.screen==='home'), navDraft:((draftClosed||draftNotOpen)?nav(false):nav(S.screen==='draft')), navEvent:nav(S.screen==='event'), navSeason:nav(S.screen==='season'),
