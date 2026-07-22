@@ -745,9 +745,7 @@ body{margin:0; background:#0a0a0a;}
             <div style="font-family:var(--fb); font-weight:700; font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px;">HEADLINES</div>
             <sc-for list="{{newsRows}}" as="n" hint-placeholder-count="5">
               <div onClick="{{n.open}}" style="display:flex; gap:12px; padding:14px; margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--acc); border-radius:var(--rad); cursor:pointer;">
-                <sc-if value="{{n.favicon}}" hint-placeholder-val="{{false}}">
-                  <img src="{{n.favicon}}" style="width:28px; height:28px; border-radius:7px; flex:none; margin-top:2px; background:var(--line); object-fit:contain;" onerror="this.style.visibility='hidden'" />
-                </sc-if>
+                <div style="width:28px; height:28px; border-radius:7px; flex:none; margin-top:2px; background:var(--line) center/contain no-repeat; background-image:{{n.faviconCss}};"></div>
                 <div style="flex:1; min-width:0;">
                   <div style="font-family:var(--fb); font-weight:700; font-size:14px; color:var(--ink); line-height:1.35;">{{n.title}}</div>
                   <div style="display:flex; align-items:center; gap:6px; margin-top:6px;">
@@ -1891,6 +1889,7 @@ class Component extends DCLogic {
           return {
             title:a.title, src:(a.source&&a.source.name)||domain, when:this.rel(new Date(a.publishedAt).getTime()), url:a.url,
             favicon: domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : '',
+            faviconCss: domain ? `url(https://www.google.com/s2/favicons?domain=${domain}&sz=64)` : 'none',
             open:()=>{ try{ window.open(a.url,'_blank'); }catch(e){} }
           };
         });
@@ -2203,7 +2202,7 @@ class Component extends DCLogic {
       masters:[ {label:'OVERALL CHAMPION',who:nm(5),amt:'$25'}, {label:'OUTRIGHT WINNER',who:nm(5)+' · Rory McIlroy',amt:'$25'}, {label:'WINNING-SCORE POOL',who:nm(0),amt:'$10'} ],
       pga:[ {label:'OVERALL CHAMPION',who:nm(5),amt:'$25'}, {label:'OUTRIGHT WINNER',who:'No pick · carried to U.S. Open',amt:'—'}, {label:'WINNING-SCORE POOL',who:'No Pick',amt:'—'} ],
       usopen:[ {label:'OVERALL CHAMPION',who:nm(7),amt:'$25'}, {label:'OUTRIGHT WINNER',who:nm(4)+' · Wyndham Clark (incl. $25 PGA carryover)',amt:'$50'}, {label:'WINNING-SCORE POOL',who:nm(3),amt:'$10'} ],
-      open:[ {label:'OVERALL CHAMPION',who:'Condor',amt:'$25'}, {label:'OUTRIGHT WINNER',who:'Nobody drafted the champion',amt:'—'}, {label:'WINNING-SCORE POOL',who:'Monte \u2014 guessed \u221210',amt:'$25'} ]
+      open:[ {label:'OVERALL CHAMPION',who:'Condor',amt:'$25'}, {label:'OUTRIGHT WINNER',who:'Nobody drafted the champion \u2014 Outright winner rolls to the next event',amt:'—'}, {label:'WINNING-SCORE POOL',who:'Monte \u2014 guessed \u221210',amt:'$25'} ]
     };})(this.PARTS);
     const payoutRecap=evOrder.map(k=>{ const sp=null;
       if(!sp){ const rows=PAYDATA[k]||[]; return { name:EVN[k], none:rows.length===0, has:rows.length>0, rows }; }
